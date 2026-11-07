@@ -1,0 +1,13 @@
+# Worktrack (`wt`) custom prompt module for starship.rs
+# Merge into "${XDG_CONFIG_HOME:-$HOME/.config}/starship.toml".
+# Displays active Activity, elapsed Interval duration, and daily total when tracking;
+# renders nothing and never blocks prompt rendering when idle or when worktrackd is stopped.
+
+[custom.worktrack]
+description = "Active Worktrack Interval and daily total"
+command = "wt status --porcelain"
+when = "command -v wt"
+style = "bold cyan"
+format = "[$output]($style)"
+require_repo = false
+ignore_timeout = true
