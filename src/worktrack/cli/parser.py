@@ -12,7 +12,9 @@ from typing import Any, NoReturn, Protocol, TextIO
 from worktrack.agenda.models import AgendaError
 from worktrack.cli.commands_capture import register_capture_subparsers
 from worktrack.cli.commands_ops import register_ops_subparsers
+from worktrack.cli.commands_outbox import register_outbox_subparsers
 from worktrack.cli.commands_planning import register_planning_subparsers
+from worktrack.cli.commands_web import register_web_subparsers
 from worktrack.cli.context import (
     EXIT_ERROR,
     EXIT_SUCCESS,
@@ -27,8 +29,11 @@ from worktrack.cli.context import (
 )
 from worktrack.cli.render import write_json, write_line
 from worktrack.config import ConfigurationError, WorktrackSettings
+from worktrack.connectors.exceptions import ConnectorError
 from worktrack.core.exceptions import LedgerError
 from worktrack.ipc.models import IpcError
+from worktrack.outbox.exceptions import OutboxError
+from worktrack.secrets.exceptions import SecretError, scrub_secrets
 from worktrack.telemetry.metrics import TelemetryRecorder
 
 # region Constants
@@ -43,6 +48,8 @@ type SubparserRegistrar = Callable[
 DEFAULT_SUBPARSER_REGISTRARS: tuple[SubparserRegistrar, ...] = (
     register_capture_subparsers,
     register_planning_subparsers,
+    register_outbox_subparsers,
+    register_web_subparsers,
     register_ops_subparsers,
 )
 
@@ -257,11 +264,21 @@ def _execute_parsed_command(
 
     try:
         exit_code = int(handler(ctx, args))
-    except (LedgerError, AgendaError, ConfigurationError, IpcError, ValueError) as exc:
+    except (
+        LedgerError,
+        AgendaError,
+        OutboxError,
+        ConnectorError,
+        SecretError,
+        ConfigurationError,
+        IpcError,
+        ValueError,
+    ) as exc:
+        safe_message = scrub_secrets(str(exc))
         if ctx.as_json:
-            write_json(err_stream, {"error": str(exc)})
+            write_json(err_stream, {"error": safe_message})
         else:
-            write_line(err_stream, f"error: {exc}")
+            write_line(err_stream, f"error: {safe_message}")
         ctx.record_outcome(canonical_sub, OUTCOME_ERROR)
         return EXIT_ERROR
 

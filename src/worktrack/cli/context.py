@@ -26,6 +26,7 @@ from worktrack.core.models import (
     FacetValue,
     format_utc_iso,
 )
+from worktrack.outbox.store import OutboxStore
 from worktrack.telemetry.metrics import TelemetryRecorder
 
 # region Constants
@@ -42,6 +43,9 @@ SUBCOMMAND_NOW: Final = "now"
 SUBCOMMAND_TODAY: Final = "today"
 SUBCOMMAND_WEEK: Final = "week"
 SUBCOMMAND_AGENDA: Final = "agenda"
+SUBCOMMAND_OUTBOX: Final = "outbox"
+SUBCOMMAND_JIRA: Final = "jira"
+SUBCOMMAND_SERVE: Final = "serve"
 SUBCOMMAND_DAEMON: Final = "daemon"
 SUBCOMMAND_STATUS: Final = "status"
 SUBCOMMAND_METRICS: Final = "metrics"
@@ -59,6 +63,9 @@ CANONICAL_CLI_SUBCOMMANDS: Final[frozenset[str]] = frozenset(
         SUBCOMMAND_TODAY,
         SUBCOMMAND_WEEK,
         SUBCOMMAND_AGENDA,
+        SUBCOMMAND_OUTBOX,
+        SUBCOMMAND_JIRA,
+        SUBCOMMAND_SERVE,
         SUBCOMMAND_DAEMON,
         SUBCOMMAND_STATUS,
         SUBCOMMAND_METRICS,
@@ -118,6 +125,16 @@ class CliContext:
             environ=self.environ,
         ) as planner:
             yield planner
+
+    @contextmanager
+    def open_outbox_store(self) -> Iterator[OutboxStore]:
+        """Open a migrated `OutboxStore` bound to `settings.db_path`."""
+        with OutboxStore.from_settings(
+            self.settings,
+            telemetry=self.telemetry,
+            environ=self.environ,
+        ) as store:
+            yield store
 
 
 # endregion

@@ -17,9 +17,11 @@ from worktrack.agenda.validators import activity_display_key
 from worktrack.core.models import Activity, format_utc_iso
 from worktrack.ipc.models import DaemonStatusSnapshot
 from worktrack.ipc.prompt import format_duration_compact
+from worktrack.outbox.models import EgressRecord, FlushResult, OutboxItem
 
 # region Constants
 PERCENT_MULTIPLIER: Final = 100.0
+SHA_PREFIX_LEN: Final = 12
 # endregion
 
 
@@ -211,6 +213,99 @@ def _format_focus_block_brief(block: FocusBlock) -> str:
         f"{block.label} ({format_utc_iso(block.started_at)} -> "
         f"{format_utc_iso(block.ended_at)}){busy}"
     )
+
+
+def serialize_outbox_item(item: OutboxItem) -> dict[str, object]:
+    """Serialize an `OutboxItem` into a JSON-compatible dictionary."""
+    return {
+        "id": item.id,
+        "idempotency_key": item.idempotency_key,
+        "sink": item.sink,
+        "target_ref": item.target_ref,
+        "window_start": format_utc_iso(item.window_start),
+        "window_end": format_utc_iso(item.window_end),
+        "raw_duration_seconds": item.raw_duration_seconds,
+        "rounded_duration_seconds": item.rounded_duration_seconds,
+        "summary": item.summary,
+        "cadence": item.cadence,
+        "status": item.status,
+        "source_interval_ids": list(item.source_interval_ids),
+        "payload_preview": dict(item.payload_preview),
+        "payload_sha256": item.payload_sha256,
+        "attempt_count": item.attempt_count,
+        "rejection_reason": item.rejection_reason,
+        "last_error": item.last_error,
+        "created_at": format_utc_iso(item.created_at),
+        "updated_at": format_utc_iso(item.updated_at),
+    }
+
+
+def serialize_egress_record(record: EgressRecord) -> dict[str, object]:
+    """Serialize an `EgressRecord` into a JSON-compatible dictionary."""
+    return {
+        "id": record.id,
+        "recorded_at": format_utc_iso(record.recorded_at),
+        "outbox_item_id": record.outbox_item_id,
+        "idempotency_key": record.idempotency_key,
+        "sink": record.sink,
+        "destination_uri": record.destination_uri,
+        "payload_sha256": record.payload_sha256,
+        "outcome": record.outcome,
+        "http_status": record.http_status,
+        "external_receipt_id": record.external_receipt_id,
+        "trace_id": record.trace_id,
+        "error_detail": record.error_detail,
+    }
+
+
+def serialize_flush_result(result: FlushResult) -> dict[str, object]:
+    """Serialize a `FlushResult` into a JSON-compatible dictionary."""
+    return {
+        "outcome": result.outcome,
+        "item": serialize_outbox_item(result.item),
+        "egress_record": serialize_egress_record(result.egress_record),
+    }
+
+
+def render_outbox_items_human(stream: TextIO, items: Sequence[OutboxItem]) -> None:
+    """Render concise human-readable `OutboxItem` rows."""
+    if not items:
+        write_line(stream, "outbox items: none")
+        return
+    write_line(stream, "outbox items:")
+    for item in items:
+        write_line(
+            stream,
+            f"  - [{item.status}] {item.sink} {item.target_ref} "
+            f"{item.rounded_duration_seconds}s ({item.cadence}) [{item.id}]",
+        )
+
+
+def render_flush_results_human(stream: TextIO, results: Sequence[FlushResult]) -> None:
+    """Render concise human-readable `FlushResult` rows."""
+    if not results:
+        write_line(stream, "flushed: 0 item(s)")
+        return
+    for res in results:
+        write_line(
+            stream,
+            f"[{res.outcome}] {res.item.sink} {res.item.target_ref} -> "
+            f"{res.egress_record.destination_uri} [{res.item.id}]",
+        )
+
+
+def render_egress_records_human(stream: TextIO, records: Sequence[EgressRecord]) -> None:
+    """Render concise human-readable `EgressLedger` audit receipts."""
+    if not records:
+        write_line(stream, "egress ledger: empty")
+        return
+    write_line(stream, "egress ledger:")
+    for rec in records:
+        write_line(
+            stream,
+            f"  - [{rec.outcome}] {format_utc_iso(rec.recorded_at)} {rec.sink} "
+            f"{rec.destination_uri} sha256={rec.payload_sha256[:SHA_PREFIX_LEN]}",
+        )
 
 
 # endregion

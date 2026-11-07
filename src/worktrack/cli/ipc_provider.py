@@ -30,6 +30,13 @@ from worktrack.ipc.models import (
     IpcApplicationError,
     OutboxSummarySnapshot,
 )
+from worktrack.outbox.exceptions import OutboxError
+from worktrack.outbox.models import (
+    EGRESS_OUTCOME_OK,
+    OUTBOX_STATUS_APPROVED,
+    OUTBOX_STATUS_STAGED,
+)
+from worktrack.outbox.store import OutboxStore
 from worktrack.telemetry.metrics import TelemetryRecorder
 
 
@@ -62,8 +69,8 @@ class LedgerIpcServiceProvider:
         self._environ = environ
         self._lock = threading.RLock()
 
-        # Eagerly apply core and agenda migrations so worker threads attach cleanly
-        with self._open_pair():
+        # Eagerly apply core, agenda, and outbox migrations so worker threads attach cleanly
+        with self._open_pair(), self._open_outbox_store():
             pass
 
     @classmethod
@@ -145,18 +152,30 @@ class LedgerIpcServiceProvider:
                 raise IpcApplicationError(str(exc)) from exc
 
     def outbox_summary(self) -> OutboxSummarySnapshot:
-        """Return staged `Outbox` summary via callback or empty zero snapshot."""
+        """Return staged `Outbox` summary via callback or live `OutboxStore` query."""
         with self._lock:
             try:
                 if self._outbox_summary_fn is not None:
                     return self._outbox_summary_fn()
-                return OutboxSummarySnapshot()
-            except (LedgerError, AgendaError) as exc:
+                with self._open_outbox_store() as store:
+                    return build_outbox_summary_snapshot(store)
+            except (LedgerError, AgendaError, OutboxError) as exc:
                 raise IpcApplicationError(str(exc)) from exc
 
     def _now(self) -> datetime:
         """Return current UTC timestamp from injected `clock_fn` or wall clock."""
         return datetime.now(UTC) if self._clock_fn is None else self._clock_fn()
+
+    @contextmanager
+    def _open_outbox_store(self) -> Iterator[OutboxStore]:
+        """Open and deterministically close `OutboxStore` for a single RPC."""
+        with OutboxStore(
+            self._db_path,
+            telemetry=self._telemetry,
+            busy_timeout_ms=self._busy_timeout_ms,
+            environ=self._environ,
+        ) as store:
+            yield store
 
     @contextmanager
     def _open_pair(self) -> Iterator[tuple[Ledger, AgendaPlanner]]:
@@ -202,4 +221,21 @@ def build_daemon_status_snapshot(
         active_interval_elapsed_seconds=ZERO_SECONDS_INT,
         daily_total_seconds=insight.today_total_seconds,
         workplace=insight.workplace,
+    )
+
+
+def build_outbox_summary_snapshot(store: OutboxStore) -> OutboxSummarySnapshot:
+    """Compute a live `OutboxSummarySnapshot` from SQLite `OutboxStore`."""
+    staged = store.list_items(status=OUTBOX_STATUS_STAGED)
+    approved = store.list_items(status=OUTBOX_STATUS_APPROVED)
+    pending = [*staged, *approved]
+    pending_seconds = sum(item.rounded_duration_seconds for item in pending)
+    distinct_sinks = tuple(sorted({item.sink for item in pending}))
+    ok_records = store.list_egress_records(outcome=EGRESS_OUTCOME_OK)
+    last_flush = format_utc_iso(ok_records[-1].recorded_at) if ok_records else None
+    return OutboxSummarySnapshot(
+        staged_count=len(staged),
+        pending_seconds=pending_seconds,
+        sinks=distinct_sinks,
+        last_flush_at=last_flush,
     )
