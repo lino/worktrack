@@ -441,6 +441,128 @@
         ],
         "type": "object"
       },
+      "CalendarStageFocusRequestRequest": {
+        "description": "Request body for `POST /api/v1/calendar/stage-focus/`.",
+        "properties": {
+          "busy_summary": {
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "end": {
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "expose_label": {
+            "default": false,
+            "type": "boolean"
+          },
+          "start": {
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "target_ref": {
+            "default": "primary",
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "CalendarStageFocusResponse": {
+        "description": "Response payload for `POST /api/v1/calendar/stage-focus/`.",
+        "properties": {
+          "staged_items": {
+            "items": {
+              "$ref": "#/components/schemas/OutboxItem"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "staged_items"
+        ],
+        "type": "object"
+      },
+      "CalendarSyncRequestRequest": {
+        "description": "Request body for `POST /api/v1/calendar/sync/`.",
+        "properties": {
+          "calendar_id": {
+            "default": "primary",
+            "minLength": 1,
+            "type": "string"
+          },
+          "ics_text": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "include_all_day": {
+            "default": false,
+            "type": "boolean"
+          },
+          "include_tentative": {
+            "default": false,
+            "type": "boolean"
+          },
+          "standing_activity_name": {
+            "default": "Meetings",
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "ics_text"
+        ],
+        "type": "object"
+      },
+      "CalendarSyncResult": {
+        "description": "Response payload for `POST /api/v1/calendar/sync/`.",
+        "properties": {
+          "activities_created": {
+            "type": "integer"
+          },
+          "activities_updated": {
+            "type": "integer"
+          },
+          "events_fetched": {
+            "type": "integer"
+          },
+          "events_synced": {
+            "type": "integer"
+          },
+          "intervals_created": {
+            "type": "integer"
+          },
+          "intervals_skipped": {
+            "type": "integer"
+          },
+          "intervals_updated": {
+            "type": "integer"
+          },
+          "provider": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "activities_created",
+          "activities_updated",
+          "events_fetched",
+          "events_synced",
+          "intervals_created",
+          "intervals_skipped",
+          "intervals_updated",
+          "provider"
+        ],
+        "type": "object"
+      },
       "CaptureModeEnum": {
         "description": "* `chaotic` - chaotic\n* `structured` - structured",
         "enum": [
@@ -448,6 +570,381 @@
           "structured"
         ],
         "type": "string"
+      },
+      "CatalogAttributionTemplate": {
+        "description": "Schema for a shared `CatalogAttributionTemplate`.",
+        "properties": {
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source_activity_ref": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source_key": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source_kind": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "target_key": {
+            "type": "string"
+          },
+          "target_kind": {
+            "type": "string"
+          },
+          "updated_at": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "weight": {
+            "format": "double",
+            "type": "number"
+          }
+        },
+        "required": [
+          "target_key",
+          "target_kind",
+          "updated_at",
+          "weight"
+        ],
+        "type": "object"
+      },
+      "CatalogAttributionTemplateRequest": {
+        "description": "Schema for a shared `CatalogAttributionTemplate`.",
+        "properties": {
+          "id": {
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source_activity_ref": {
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source_key": {
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source_kind": {
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "target_key": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "target_kind": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "weight": {
+            "format": "double",
+            "type": "number"
+          }
+        },
+        "required": [
+          "target_key",
+          "target_kind",
+          "weight"
+        ],
+        "type": "object"
+      },
+      "CatalogEntityRecord": {
+        "description": "Schema for a shared `CatalogEntityRecord`.",
+        "properties": {
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "key": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "metadata": {
+            "additionalProperties": {},
+            "type": "object"
+          },
+          "name": {
+            "type": "string"
+          },
+          "updated_at": {
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "kind",
+          "name",
+          "updated_at"
+        ],
+        "type": "object"
+      },
+      "CatalogEntityRecordRequest": {
+        "description": "Schema for a shared `CatalogEntityRecord`.",
+        "properties": {
+          "id": {
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "key": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "kind": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "metadata": {
+            "additionalProperties": {},
+            "type": "object"
+          },
+          "name": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "kind",
+          "name"
+        ],
+        "type": "object"
+      },
+      "Clue": {
+        "description": "Canonical OpenAPI 3.1 schema for a persisted `Clue` record.",
+        "properties": {
+          "activity_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "confidence": {
+            "format": "double",
+            "type": "number"
+          },
+          "created_at": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "external_id": {
+            "type": "string"
+          },
+          "external_key": {
+            "type": "string"
+          },
+          "id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "inferred_activity_key": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "metadata": {
+            "additionalProperties": {},
+            "type": "object"
+          },
+          "occurred_at": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "confidence",
+          "created_at",
+          "external_id",
+          "external_key",
+          "id",
+          "occurred_at",
+          "source",
+          "summary"
+        ],
+        "type": "object"
+      },
+      "ClueGitSyncItemRequest": {
+        "description": "Direct clue item payload submitted to `POST /api/v1/clues/git-sync/`.",
+        "properties": {
+          "activity_id": {
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "confidence": {
+            "default": 0.85,
+            "format": "double",
+            "type": "number"
+          },
+          "external_id": {
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "external_key": {
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "inferred_activity_key": {
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "metadata": {
+            "additionalProperties": {},
+            "type": "object"
+          },
+          "occurred_at": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "source": {
+            "default": "git",
+            "minLength": 1,
+            "type": "string"
+          },
+          "summary": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "occurred_at",
+          "summary"
+        ],
+        "type": "object"
+      },
+      "ClueGitSyncRequestRequest": {
+        "description": "Request body for `POST /api/v1/clues/git-sync/`.",
+        "properties": {
+          "author": {
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "clues": {
+            "items": {
+              "$ref": "#/components/schemas/ClueGitSyncItemRequest"
+            },
+            "type": "array"
+          },
+          "repo_path": {
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "since": {
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "until": {
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "ClueList": {
+        "description": "Envelope listing `Clue` items.",
+        "properties": {
+          "clues": {
+            "items": {
+              "$ref": "#/components/schemas/Clue"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "clues"
+        ],
+        "type": "object"
+      },
+      "ClueSyncResult": {
+        "description": "Response payload for `POST /api/v1/clues/git-sync/`.",
+        "properties": {
+          "activities_linked": {
+            "type": "integer"
+          },
+          "clues": {
+            "items": {
+              "$ref": "#/components/schemas/Clue"
+            },
+            "type": "array"
+          },
+          "clues_upserted": {
+            "type": "integer"
+          },
+          "commits_scanned": {
+            "type": "integer"
+          },
+          "forge_records_scanned": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "activities_linked",
+          "clues",
+          "clues_upserted",
+          "commits_scanned",
+          "forge_records_scanned"
+        ],
+        "type": "object"
       },
       "ContextFact": {
         "description": "Canonical `ContextFact` transport schema for `pinia-orm`.",
@@ -700,6 +1197,96 @@
         ],
         "type": "object"
       },
+      "EntityAttributionExportResponse": {
+        "description": "Response payload for `GET /api/v1/exports/entity-attribution/`.",
+        "properties": {
+          "format": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ExportFormatEnum"
+              }
+            ],
+            "default": "json"
+          },
+          "rendered": {
+            "type": "string"
+          },
+          "report": {
+            "$ref": "#/components/schemas/EntityAttributionReport"
+          }
+        },
+        "required": [
+          "rendered",
+          "report"
+        ],
+        "type": "object"
+      },
+      "EntityAttributionReport": {
+        "description": "Canonical schema for `EntityAttributionReport`.",
+        "properties": {
+          "hours_by_kind": {
+            "additionalProperties": {
+              "format": "double",
+              "type": "number"
+            },
+            "type": "object"
+          },
+          "normalized": {
+            "type": "boolean"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/EntityStatementRow"
+            },
+            "type": "array"
+          },
+          "target_kind": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "total_interval_hours": {
+            "format": "double",
+            "type": "number"
+          },
+          "total_interval_seconds": {
+            "format": "double",
+            "type": "number"
+          },
+          "totals_by_kind": {
+            "additionalProperties": {
+              "format": "double",
+              "type": "number"
+            },
+            "type": "object"
+          },
+          "window_end": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "window_start": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "hours_by_kind",
+          "normalized",
+          "rows",
+          "target_kind",
+          "total_interval_hours",
+          "total_interval_seconds",
+          "totals_by_kind",
+          "window_end",
+          "window_start"
+        ],
+        "type": "object"
+      },
       "EntityAttributionShare": {
         "description": "Aggregated `EntityAttributionShare` response schema.",
         "properties": {
@@ -729,6 +1316,36 @@
         ],
         "type": "object"
       },
+      "EntityCatalogSnapshot": {
+        "description": "Canonical schema for `EntityCatalogSnapshot`.",
+        "properties": {
+          "attribution_templates": {
+            "items": {
+              "$ref": "#/components/schemas/CatalogAttributionTemplate"
+            },
+            "type": "array"
+          },
+          "entities": {
+            "items": {
+              "$ref": "#/components/schemas/CatalogEntityRecord"
+            },
+            "type": "array"
+          },
+          "generated_at": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "attribution_templates",
+          "entities",
+          "generated_at",
+          "version"
+        ],
+        "type": "object"
+      },
       "EntityRequest": {
         "description": "Canonical `Entity` transport schema for `pinia-orm`.",
         "properties": {
@@ -755,6 +1372,67 @@
           "name"
         ],
         "type": "object"
+      },
+      "EntityStatementRow": {
+        "description": "Schema for an `EntityStatementRow` in `EntityAttributionReport`.",
+        "properties": {
+          "attributed_hours": {
+            "format": "double",
+            "type": "number"
+          },
+          "attributed_seconds": {
+            "format": "double",
+            "type": "number"
+          },
+          "entity_id": {
+            "type": "string"
+          },
+          "entity_key": {
+            "type": "string"
+          },
+          "entity_kind": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "percentage_of_kind": {
+            "format": "double",
+            "type": "number"
+          },
+          "share_of_kind": {
+            "format": "double",
+            "type": "number"
+          }
+        },
+        "required": [
+          "attributed_hours",
+          "attributed_seconds",
+          "entity_id",
+          "entity_key",
+          "entity_kind",
+          "key",
+          "kind",
+          "name",
+          "percentage_of_kind",
+          "share_of_kind"
+        ],
+        "type": "object"
+      },
+      "ExportFormatEnum": {
+        "description": "* `csv` - csv\n* `json` - json\n* `markdown` - markdown",
+        "enum": [
+          "csv",
+          "json",
+          "markdown"
+        ],
+        "type": "string"
       },
       "Facet": {
         "description": "Canonical `Facet` schema transport definition for `pinia-orm`.",
@@ -1010,6 +1688,244 @@
           "mode",
           "namespace",
           "status"
+        ],
+        "type": "object"
+      },
+      "HubCatalogUpsertRequestRequest": {
+        "description": "Request body for `POST /api/v1/hub/catalog/`.",
+        "properties": {
+          "attribution_templates": {
+            "items": {
+              "$ref": "#/components/schemas/CatalogAttributionTemplateRequest"
+            },
+            "type": "array"
+          },
+          "entities": {
+            "items": {
+              "$ref": "#/components/schemas/CatalogEntityRecordRequest"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "HubRollupIngestRequestRequest": {
+        "description": "Request body for `POST /api/v1/hub/rollups/`.",
+        "properties": {
+          "buckets": {
+            "items": {
+              "additionalProperties": {},
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "cadence": {
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "entity_shares": {
+            "additionalProperties": {
+              "format": "double",
+              "type": "number"
+            },
+            "type": "object"
+          },
+          "entity_shares_seconds": {
+            "additionalProperties": {
+              "format": "double",
+              "type": "number"
+            },
+            "type": "object"
+          },
+          "grouping_window": {
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "idempotency_key": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "node_id": {
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "outbox_item_id": {
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "payload_preview": {
+            "additionalProperties": {},
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "payload_sha256": {
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rounded_duration_seconds": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "schema": {
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "started_at": {
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "summary": {
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "target_ref": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "time_spent_seconds": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "total_rounded_seconds": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "window_end": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "window_start": {
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "idempotency_key",
+          "target_ref",
+          "window_end"
+        ],
+        "type": "object"
+      },
+      "HubRollupList": {
+        "description": "Response envelope for `GET /api/v1/hub/rollups/`.",
+        "properties": {
+          "rollups": {
+            "items": {
+              "$ref": "#/components/schemas/IngestedHubRollup"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "rollups"
+        ],
+        "type": "object"
+      },
+      "IngestedHubRollup": {
+        "description": "Canonical schema for an ingested `IngestedHubRollup` record.",
+        "properties": {
+          "cadence": {
+            "type": "string"
+          },
+          "deduplicated": {
+            "type": "boolean"
+          },
+          "entity_shares": {
+            "additionalProperties": {
+              "format": "double",
+              "type": "number"
+            },
+            "type": "object"
+          },
+          "id": {
+            "type": "string"
+          },
+          "idempotency_key": {
+            "type": "string"
+          },
+          "ingested_at": {
+            "type": "string"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "outbox_item_id": {
+            "type": "string"
+          },
+          "payload_preview": {
+            "additionalProperties": {},
+            "type": "object"
+          },
+          "payload_sha256": {
+            "type": "string"
+          },
+          "rounded_duration_seconds": {
+            "type": "integer"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "target_ref": {
+            "type": "string"
+          },
+          "window_end": {
+            "type": "string"
+          },
+          "window_start": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "cadence",
+          "deduplicated",
+          "entity_shares",
+          "id",
+          "idempotency_key",
+          "ingested_at",
+          "node_id",
+          "outbox_item_id",
+          "payload_preview",
+          "payload_sha256",
+          "rounded_duration_seconds",
+          "summary",
+          "target_ref",
+          "window_end",
+          "window_start"
         ],
         "type": "object"
       },
@@ -1851,6 +2767,57 @@
         },
         "type": "object"
       },
+      "PlausibilityGap": {
+        "description": "Schema for a single `PlausibilityGap` detected by `PlausibilityReconciler`.",
+        "properties": {
+          "activity": {
+            "$ref": "#/components/schemas/Activity"
+          },
+          "agenda_item_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "booked_seconds": {
+            "type": "integer"
+          },
+          "clues": {
+            "items": {
+              "additionalProperties": {},
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "deficit_seconds": {
+            "type": "integer"
+          },
+          "min_booked_seconds": {
+            "type": "integer"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "suggested_weight": {
+            "format": "double",
+            "type": "number"
+          }
+        },
+        "required": [
+          "activity",
+          "agenda_item_ids",
+          "booked_seconds",
+          "clues",
+          "deficit_seconds",
+          "min_booked_seconds",
+          "reasons",
+          "suggested_weight"
+        ],
+        "type": "object"
+      },
       "PreviewChangeKindEnum": {
         "description": "* `create` - create\n* `unchanged` - unchanged\n* `update` - update",
         "enum": [
@@ -1927,6 +2894,290 @@
         ],
         "type": "object"
       },
+      "ReconcileInspectionResult": {
+        "description": "Response payload for `GET /api/v1/reconciler/inspect/`.",
+        "properties": {
+          "candidate_clues": {
+            "items": {
+              "$ref": "#/components/schemas/Clue"
+            },
+            "type": "array"
+          },
+          "candidate_intervals": {
+            "items": {
+              "$ref": "#/components/schemas/Interval"
+            },
+            "type": "array"
+          },
+          "gaps": {
+            "items": {
+              "$ref": "#/components/schemas/PlausibilityGap"
+            },
+            "type": "array"
+          },
+          "has_candidates": {
+            "type": "boolean"
+          },
+          "has_gaps": {
+            "type": "boolean"
+          },
+          "min_booked_seconds": {
+            "type": "integer"
+          },
+          "total_chaotic_seconds": {
+            "type": "integer"
+          },
+          "total_unallocated_seconds": {
+            "type": "integer"
+          },
+          "unallocated_intervals": {
+            "items": {
+              "$ref": "#/components/schemas/Interval"
+            },
+            "type": "array"
+          },
+          "unbooked_activities": {
+            "items": {
+              "$ref": "#/components/schemas/PlausibilityGap"
+            },
+            "type": "array"
+          },
+          "window_end": {
+            "type": "string"
+          },
+          "window_start": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "candidate_clues",
+          "candidate_intervals",
+          "gaps",
+          "has_candidates",
+          "has_gaps",
+          "min_booked_seconds",
+          "total_chaotic_seconds",
+          "total_unallocated_seconds",
+          "unallocated_intervals",
+          "unbooked_activities",
+          "window_end",
+          "window_start"
+        ],
+        "type": "object"
+      },
+      "ReconcilerProposeRequestRequest": {
+        "description": "Request body for `POST /api/v1/reconciler/{propose,apply}/`.",
+        "properties": {
+          "activity_ids": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "interval_id": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "strategy": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RetroSplitStrategyEnum"
+              }
+            ],
+            "default": "proportional"
+          },
+          "weights": {
+            "additionalProperties": {
+              "format": "double",
+              "type": "number"
+            },
+            "type": [
+              "object",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "activity_ids",
+          "interval_id"
+        ],
+        "type": "object"
+      },
+      "ReconcilerProposeResponse": {
+        "description": "Response envelope for `POST /api/v1/reconciler/propose/`.",
+        "properties": {
+          "proposal": {
+            "$ref": "#/components/schemas/RetroSplitProposal"
+          }
+        },
+        "required": [
+          "proposal"
+        ],
+        "type": "object"
+      },
+      "RetroSplitApplyResult": {
+        "description": "Response payload for `POST /api/v1/reconciler/apply/`.",
+        "properties": {
+          "applied_at": {
+            "type": "string"
+          },
+          "created_intervals": {
+            "items": {
+              "$ref": "#/components/schemas/Interval"
+            },
+            "type": "array"
+          },
+          "interval_count": {
+            "type": "integer"
+          },
+          "intervals": {
+            "items": {
+              "$ref": "#/components/schemas/Interval"
+            },
+            "type": "array"
+          },
+          "proposal_id": {
+            "type": "string"
+          },
+          "strategy": {
+            "$ref": "#/components/schemas/RetroSplitStrategyEnum"
+          },
+          "total_duration_seconds": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "applied_at",
+          "created_intervals",
+          "interval_count",
+          "intervals",
+          "proposal_id",
+          "strategy",
+          "total_duration_seconds"
+        ],
+        "type": "object"
+      },
+      "RetroSplitProposal": {
+        "description": "Schema for a `RetroSplitProposal`.",
+        "properties": {
+          "allocated_duration_seconds": {
+            "type": "integer"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "interval_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "is_conserved": {
+            "type": "boolean"
+          },
+          "normalized_weights": {
+            "additionalProperties": {
+              "format": "double",
+              "type": "number"
+            },
+            "type": "object"
+          },
+          "proposal_id": {
+            "type": "string"
+          },
+          "slices": {
+            "items": {
+              "$ref": "#/components/schemas/RetroSplitSliceProposal"
+            },
+            "type": "array"
+          },
+          "strategy": {
+            "$ref": "#/components/schemas/RetroSplitStrategyEnum"
+          },
+          "total_duration_seconds": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "allocated_duration_seconds",
+          "created_at",
+          "interval_ids",
+          "is_conserved",
+          "normalized_weights",
+          "proposal_id",
+          "slices",
+          "strategy",
+          "total_duration_seconds"
+        ],
+        "type": "object"
+      },
+      "RetroSplitSliceProposal": {
+        "description": "Schema for a single proposed slice in a `RetroSplitProposal`.",
+        "properties": {
+          "activity_id": {
+            "type": "string"
+          },
+          "activity_name": {
+            "type": "string"
+          },
+          "duration_seconds": {
+            "type": "integer"
+          },
+          "ended_at": {
+            "type": "string"
+          },
+          "interval_id": {
+            "type": "string"
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "share": {
+            "format": "double",
+            "type": "number"
+          },
+          "started_at": {
+            "type": "string"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "weight": {
+            "format": "double",
+            "type": "number"
+          }
+        },
+        "required": [
+          "activity_id",
+          "activity_name",
+          "duration_seconds",
+          "ended_at",
+          "interval_id",
+          "notes",
+          "share",
+          "started_at",
+          "tags",
+          "weight"
+        ],
+        "type": "object"
+      },
+      "RetroSplitStrategyEnum": {
+        "description": "* `equal` - equal\n* `proportional` - proportional\n* `weights` - weights",
+        "enum": [
+          "equal",
+          "proportional",
+          "weights"
+        ],
+        "type": "string"
+      },
       "RoundingModeEnum": {
         "description": "* `ceil` - ceil\n* `floor` - floor\n* `nearest` - nearest",
         "enum": [
@@ -1935,6 +3186,66 @@
           "nearest"
         ],
         "type": "string"
+      },
+      "SensorEvaluateRequestRequest": {
+        "description": "Request body for `POST /api/v1/sensors/evaluate/`.",
+        "properties": {
+          "apply": {
+            "default": false,
+            "type": "boolean"
+          },
+          "overwrite_manual": {
+            "default": false,
+            "type": "boolean"
+          },
+          "rules": {
+            "items": {
+              "$ref": "#/components/schemas/WorkplaceSensorRuleRequest"
+            },
+            "type": "array"
+          },
+          "scope_date": {
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "snapshot": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/WorkstationSnapshotRequest"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "SensorEvaluationResult": {
+        "description": "Response payload for `POST /api/v1/sensors/evaluate/`.",
+        "properties": {
+          "matched": {
+            "type": "boolean"
+          },
+          "suggestion": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/WorkplaceSuggestion"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "matched",
+          "suggestion"
+        ],
+        "type": "object"
       },
       "TodayInsight": {
         "description": "OpenAPI 3.1 `TodayInsight` component schema for `GET /api/v1/insights/today/`.",
@@ -2214,6 +3525,437 @@
           "workplace",
           "workplace_breakdown"
         ],
+        "type": "object"
+      },
+      "WorkplaceDayEntry": {
+        "description": "Schema for a daily entry in `WorkplaceTaxReport`.",
+        "properties": {
+          "interval_count": {
+            "type": "integer"
+          },
+          "scope_date": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "tracked_hours": {
+            "format": "double",
+            "type": "number"
+          },
+          "tracked_seconds": {
+            "format": "double",
+            "type": "number"
+          },
+          "workplace": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "interval_count",
+          "scope_date",
+          "source",
+          "tracked_hours",
+          "tracked_seconds",
+          "workplace"
+        ],
+        "type": "object"
+      },
+      "WorkplaceSensorRuleRequest": {
+        "description": "Schema for an ordered `WorkplaceSensorRule`.",
+        "properties": {
+          "cidrs": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "confidence": {
+            "default": 0.9,
+            "format": "double",
+            "type": "number"
+          },
+          "description": {
+            "default": "",
+            "type": "string"
+          },
+          "display_count": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "ipv4_cidrs": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "ipv6_cidrs": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "max_displays": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "min_displays": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "require_vpn": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "rule_id": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "vpn_interface_prefixes": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "wifi_ssids": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "workplace": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "rule_id",
+          "workplace"
+        ],
+        "type": "object"
+      },
+      "WorkplaceSuggestion": {
+        "description": "Schema for an evaluated `WorkplaceSuggestion`.",
+        "properties": {
+          "clue_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "confidence": {
+            "format": "double",
+            "type": "number"
+          },
+          "context_fact_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "matched_signals": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "rule_id": {
+            "type": "string"
+          },
+          "scope_date": {
+            "type": "string"
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/WorkstationSnapshot"
+          },
+          "workplace": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "clue_id",
+          "confidence",
+          "context_fact_id",
+          "matched_signals",
+          "rule_id",
+          "scope_date",
+          "snapshot",
+          "workplace"
+        ],
+        "type": "object"
+      },
+      "WorkplaceSummaryRow": {
+        "description": "Schema for a `WorkplaceSummaryRow` in `WorkplaceTaxReport`.",
+        "properties": {
+          "day_count": {
+            "type": "integer"
+          },
+          "sources": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "tracked_hours": {
+            "format": "double",
+            "type": "number"
+          },
+          "tracked_seconds": {
+            "format": "double",
+            "type": "number"
+          },
+          "workplace": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "day_count",
+          "sources",
+          "tracked_hours",
+          "tracked_seconds",
+          "workplace"
+        ],
+        "type": "object"
+      },
+      "WorkplaceTaxExportResponse": {
+        "description": "Response payload for `GET /api/v1/exports/workplace-tax/`.",
+        "properties": {
+          "format": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ExportFormatEnum"
+              }
+            ],
+            "default": "json"
+          },
+          "rendered": {
+            "type": "string"
+          },
+          "report": {
+            "$ref": "#/components/schemas/WorkplaceTaxReport"
+          }
+        },
+        "required": [
+          "rendered",
+          "report"
+        ],
+        "type": "object"
+      },
+      "WorkplaceTaxReport": {
+        "description": "Canonical schema for `WorkplaceTaxReport`.",
+        "properties": {
+          "daily_entries": {
+            "items": {
+              "$ref": "#/components/schemas/WorkplaceDayEntry"
+            },
+            "type": "array"
+          },
+          "days_by_workplace": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object"
+          },
+          "end_date": {
+            "type": "string"
+          },
+          "hours_by_workplace": {
+            "additionalProperties": {
+              "format": "double",
+              "type": "number"
+            },
+            "type": "object"
+          },
+          "seconds_by_workplace": {
+            "additionalProperties": {
+              "format": "double",
+              "type": "number"
+            },
+            "type": "object"
+          },
+          "start_date": {
+            "type": "string"
+          },
+          "summary_rows": {
+            "items": {
+              "$ref": "#/components/schemas/WorkplaceSummaryRow"
+            },
+            "type": "array"
+          },
+          "total_classified_days": {
+            "type": "integer"
+          },
+          "total_tracked_hours": {
+            "format": "double",
+            "type": "number"
+          },
+          "total_tracked_seconds": {
+            "format": "double",
+            "type": "number"
+          },
+          "total_unclassified_days": {
+            "type": "integer"
+          },
+          "workplace_days": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object"
+          }
+        },
+        "required": [
+          "daily_entries",
+          "days_by_workplace",
+          "end_date",
+          "hours_by_workplace",
+          "seconds_by_workplace",
+          "start_date",
+          "summary_rows",
+          "total_classified_days",
+          "total_tracked_hours",
+          "total_tracked_seconds",
+          "total_unclassified_days",
+          "workplace_days"
+        ],
+        "type": "object"
+      },
+      "WorkstationSnapshot": {
+        "description": "Schema for a local `WorkstationSnapshot`.",
+        "properties": {
+          "active_interfaces": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "captured_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "display_count": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "displays": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "hostname": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ip_addresses": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "ipv4_addresses": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "vpn_interfaces": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "wifi_ssid": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "WorkstationSnapshotRequest": {
+        "description": "Schema for a local `WorkstationSnapshot`.",
+        "properties": {
+          "active_interfaces": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "captured_at": {
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "display_count": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "displays": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "hostname": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ip_addresses": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "ipv4_addresses": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "vpn_interfaces": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "wifi_ssid": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
         "type": "object"
       }
     }
@@ -2864,6 +4606,158 @@
         ]
       }
     },
+    "/api/v1/calendar/stage-focus/": {
+      "post": {
+        "description": "Stage eligible `FocusBlocks` in `[start, end)` into `OutboxStore`.",
+        "operationId": "v1_calendar_stage_focus",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalendarStageFocusRequestRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarStageFocusResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {}
+        ],
+        "tags": [
+          "api"
+        ]
+      }
+    },
+    "/api/v1/calendar/sync/": {
+      "post": {
+        "description": "Import inline `ics_text` into `Ledger`.",
+        "operationId": "v1_calendar_sync",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalendarSyncRequestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarSyncResult"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {}
+        ],
+        "tags": [
+          "api"
+        ]
+      }
+    },
+    "/api/v1/clues/": {
+      "get": {
+        "description": "Return filtered `Clue` records.",
+        "operationId": "v1_clues_list",
+        "parameters": [
+          {
+            "description": "Exclusive end UTC.",
+            "in": "query",
+            "name": "end",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filter by clue source.",
+            "in": "query",
+            "name": "source",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Inclusive start UTC.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClueList"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {}
+        ],
+        "tags": [
+          "api"
+        ]
+      }
+    },
+    "/api/v1/clues/git-sync/": {
+      "post": {
+        "description": "Execute Git clue sync or batch clue upsert.",
+        "operationId": "v1_clues_git_sync",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClueGitSyncRequestRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClueSyncResult"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {}
+        ],
+        "tags": [
+          "api"
+        ]
+      }
+    },
     "/api/v1/context-facts/": {
       "get": {
         "description": "List `ContextFacts` filtered by optional facet key, date window, or interval.",
@@ -3112,6 +5006,134 @@
         ]
       }
     },
+    "/api/v1/exports/entity-attribution/": {
+      "get": {
+        "description": "Build and render `EntityAttributionReport`.",
+        "operationId": "v1_exports_entity_attribution",
+        "parameters": [
+          {
+            "description": "Window end UTC.",
+            "in": "query",
+            "name": "end",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Entity kind filter.",
+            "in": "query",
+            "name": "entity_kind",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Export format (json, csv, or markdown).",
+            "in": "query",
+            "name": "format",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Normalize shares.",
+            "in": "query",
+            "name": "normalize",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Window start UTC.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntityAttributionExportResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {}
+        ],
+        "tags": [
+          "api"
+        ]
+      }
+    },
+    "/api/v1/exports/workplace-tax/": {
+      "get": {
+        "description": "Build and render `WorkplaceTaxReport`.",
+        "operationId": "v1_exports_workplace_tax",
+        "parameters": [
+          {
+            "description": "End date YYYY-MM-DD.",
+            "in": "query",
+            "name": "end_date",
+            "schema": {
+              "format": "date",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Export format (json, csv, or markdown).",
+            "in": "query",
+            "name": "format",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Start date YYYY-MM-DD.",
+            "in": "query",
+            "name": "start_date",
+            "schema": {
+              "format": "date",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Four-digit calendar year.",
+            "in": "query",
+            "name": "year",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkplaceTaxExportResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {}
+        ],
+        "tags": [
+          "api"
+        ]
+      }
+    },
     "/api/v1/facets/": {
       "get": {
         "description": "List all registered `Facet` schemas.",
@@ -3202,6 +5224,145 @@
         ],
         "tags": [
           "Facets"
+        ]
+      }
+    },
+    "/api/v1/hub/catalog/": {
+      "get": {
+        "description": "Return current `EntityCatalogSnapshot`.",
+        "operationId": "v1_hub_catalog_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntityCatalogSnapshot"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {}
+        ],
+        "tags": [
+          "api"
+        ]
+      },
+      "post": {
+        "description": "Upsert shared `Entity` catalog records and default `Attribution` templates.",
+        "operationId": "v1_hub_catalog_upsert",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HubCatalogUpsertRequestRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntityCatalogSnapshot"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {}
+        ],
+        "tags": [
+          "api"
+        ]
+      }
+    },
+    "/api/v1/hub/rollups/": {
+      "get": {
+        "description": "List ingested Hub rollups.",
+        "operationId": "v1_hub_rollups_list",
+        "parameters": [
+          {
+            "description": "Filter by node_id.",
+            "in": "query",
+            "name": "node_id",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filter by target_ref.",
+            "in": "query",
+            "name": "target_ref",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HubRollupList"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {}
+        ],
+        "tags": [
+          "api"
+        ]
+      },
+      "post": {
+        "description": "Validate and idempotently ingest an aggregate Node rollup.",
+        "operationId": "v1_hub_rollups_ingest",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HubRollupIngestRequestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IngestedHubRollup"
+                }
+              }
+            },
+            "description": ""
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IngestedHubRollup"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {}
+        ],
+        "tags": [
+          "api"
         ]
       }
     },
@@ -3944,6 +6105,151 @@
         ],
         "tags": [
           "Outbox"
+        ]
+      }
+    },
+    "/api/v1/reconciler/apply/": {
+      "post": {
+        "description": "Generate and apply a `RetroSplitProposal`.",
+        "operationId": "v1_reconciler_apply",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReconcilerProposeRequestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RetroSplitApplyResult"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {}
+        ],
+        "tags": [
+          "api"
+        ]
+      }
+    },
+    "/api/v1/reconciler/inspect/": {
+      "get": {
+        "description": "Inspect plausibility gaps and candidate clues in `[start, end)`.",
+        "operationId": "v1_reconciler_inspect",
+        "parameters": [
+          {
+            "description": "Window end UTC.",
+            "in": "query",
+            "name": "end",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Window start UTC.",
+            "in": "query",
+            "name": "start",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReconcileInspectionResult"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {}
+        ],
+        "tags": [
+          "api"
+        ]
+      }
+    },
+    "/api/v1/reconciler/propose/": {
+      "post": {
+        "description": "Generate and return a `RetroSplitProposal`.",
+        "operationId": "v1_reconciler_propose",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReconcilerProposeRequestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReconcilerProposeResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {}
+        ],
+        "tags": [
+          "api"
+        ]
+      }
+    },
+    "/api/v1/sensors/evaluate/": {
+      "post": {
+        "description": "Evaluate workplace sensor rules and optionally assert `workplace` `ContextFact`.",
+        "operationId": "v1_sensors_evaluate",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SensorEvaluateRequestRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SensorEvaluationResult"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {}
+        ],
+        "tags": [
+          "api"
         ]
       }
     },

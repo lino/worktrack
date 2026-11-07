@@ -19,6 +19,7 @@ from worktrack.core.models import (
     ALLOWED_FACET_VALUE_TYPES,
     ALLOWED_OVERLAP_POLICIES,
 )
+from worktrack.exporters.models import ALLOWED_EXPORT_FORMATS
 from worktrack.outbox.models import (
     ALLOWED_CHANGE_KINDS,
     ALLOWED_EGRESS_OUTCOMES,
@@ -28,6 +29,7 @@ from worktrack.outbox.models import (
     ALLOWED_OUTBOX_STATUSES,
     ALLOWED_ROUNDING_MODES,
 )
+from worktrack.reconciler.models import ALLOWED_RETROSPLIT_STRATEGIES
 from worktrack.secrets.exceptions import SecretError
 from worktrack.secrets.providers import SecretResolver
 from worktrack.web.database import build_databases_config
@@ -87,6 +89,7 @@ DEFAULT_REST_FRAMEWORK_SETTINGS: Final[dict[str, Any]] = {
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
     "DEFAULT_PARSER_CLASSES": ["rest_framework.parsers.JSONParser"],
     "UNAUTHENTICATED_USER": None,
+    "URL_FORMAT_OVERRIDE": None,
     "EXCEPTION_HANDLER": "worktrack.web.services.worktrack_exception_handler",
 }
 
@@ -114,6 +117,8 @@ DEFAULT_SPECTACULAR_SETTINGS: Final[dict[str, Any]] = {
         "RoundingModeEnum": sorted(ALLOWED_ROUNDING_MODES),
         "PreviewChangeKindEnum": sorted(ALLOWED_CHANGE_KINDS),
         "EgressOutcomeEnum": sorted(ALLOWED_EGRESS_OUTCOMES),
+        "RetroSplitStrategyEnum": sorted(ALLOWED_RETROSPLIT_STRATEGIES),
+        "ExportFormatEnum": sorted(ALLOWED_EXPORT_FORMATS),
     },
 }
 # endregion

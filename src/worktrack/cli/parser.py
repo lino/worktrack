@@ -10,7 +10,11 @@ from contextvars import ContextVar
 from typing import Any, NoReturn, Protocol, TextIO
 
 from worktrack.agenda.models import AgendaError
+from worktrack.cli.commands_calendar_mcp_hub_export import (
+    register_calendar_mcp_hub_export_subparsers,
+)
 from worktrack.cli.commands_capture import register_capture_subparsers
+from worktrack.cli.commands_clues_sensors import register_clues_sensors_subparsers
 from worktrack.cli.commands_ops import register_ops_subparsers
 from worktrack.cli.commands_outbox import register_outbox_subparsers
 from worktrack.cli.commands_planning import register_planning_subparsers
@@ -28,12 +32,19 @@ from worktrack.cli.context import (
     normalize_cli_subcommand,
 )
 from worktrack.cli.render import write_json, write_line
+from worktrack.collectors import CollectorError
 from worktrack.config import ConfigurationError, WorktrackSettings
+from worktrack.connectors.calendar import CalendarConnectorError
 from worktrack.connectors.exceptions import ConnectorError
 from worktrack.core.exceptions import LedgerError
+from worktrack.exporters import ExporterError
+from worktrack.hub_sync import HubSyncError
 from worktrack.ipc.models import IpcError
+from worktrack.mcp import McpError
 from worktrack.outbox.exceptions import OutboxError
+from worktrack.reconciler import ReconcilerError
 from worktrack.secrets.exceptions import SecretError, scrub_secrets
+from worktrack.sensors import SensorError
 from worktrack.telemetry.metrics import TelemetryRecorder
 
 # region Constants
@@ -50,6 +61,8 @@ DEFAULT_SUBPARSER_REGISTRARS: tuple[SubparserRegistrar, ...] = (
     register_planning_subparsers,
     register_outbox_subparsers,
     register_web_subparsers,
+    register_clues_sensors_subparsers,
+    register_calendar_mcp_hub_export_subparsers,
     register_ops_subparsers,
 )
 
@@ -269,6 +282,13 @@ def _execute_parsed_command(
         AgendaError,
         OutboxError,
         ConnectorError,
+        CalendarConnectorError,
+        CollectorError,
+        SensorError,
+        ReconcilerError,
+        McpError,
+        ExporterError,
+        HubSyncError,
         SecretError,
         ConfigurationError,
         IpcError,

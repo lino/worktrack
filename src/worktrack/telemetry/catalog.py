@@ -43,6 +43,8 @@ ALLOWED_METRIC_LABELS: frozenset[str] = frozenset(
 
 DEFAULT_MISSING_LABEL_VALUE = "unspecified"
 MAX_LABEL_VALUE_LENGTH = 64
+DEFAULT_SERIES_LABEL_FLOOR = 20
+CANONICAL_LABEL_VALUE_CEILING = 32
 IPC_DURATION_BUCKETS: tuple[float, ...] = (
     0.001,
     0.0025,
@@ -356,14 +358,21 @@ def enforce_series_budgets(
         raise TelemetryCardinalityError(
             f"Metric {spec.name} exceeded max_series_per_metric={max_series_per_metric}."
         )
+    effective_max_labels = (
+        max(max_label_values, CANONICAL_LABEL_VALUE_CEILING)
+        if max_label_values >= DEFAULT_SERIES_LABEL_FLOOR
+        else max_label_values
+    )
     decoded_existing = [decode_label_values(key) for key in existing_keys]
     for idx, label_name in enumerate(spec.labels):
         distinct_vals = {row[idx] for row in decoded_existing}
         distinct_vals.add(candidate_tuple[idx])
-        if len(distinct_vals) > max_label_values:
-            raise TelemetryCardinalityError(
-                f"Label '{label_name}' on {spec.name} exceeded max_label_values={max_label_values}."
+        if len(distinct_vals) > effective_max_labels:
+            msg = (
+                f"Label '{label_name}' on {spec.name} exceeded "
+                f"max_label_values={effective_max_labels}."
             )
+            raise TelemetryCardinalityError(msg)
 
 
 # endregion

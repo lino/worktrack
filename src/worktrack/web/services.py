@@ -17,6 +17,12 @@ if TYPE_CHECKING:
     from rest_framework.response import Response
 
 from worktrack.agenda import AgendaError, AgendaPlanner, AgendaValidationError
+from worktrack.collectors import (
+    ClueNotFoundError,
+    ClueStore,
+    CollectorError,
+    ForgeAuthenticationError,
+)
 from worktrack.config import ConfigurationError, WorktrackSettings
 from worktrack.connectors import (
     JiraCloudConfig,
@@ -24,6 +30,7 @@ from worktrack.connectors import (
     JiraOAuthClient,
     JiraWorklogSink,
 )
+from worktrack.connectors.calendar import CalendarAuthenticationError, CalendarConnectorError
 from worktrack.core import (
     AttributionCycleError,
     DuplicateKeyError,
@@ -37,6 +44,13 @@ from worktrack.core import (
     NotFoundError,
     OverlapConflictError,
 )
+from worktrack.exporters import ExporterError
+from worktrack.hub_sync import (
+    HubAuthenticationError,
+    HubRollupIngestStore,
+    HubSyncError,
+)
+from worktrack.mcp import McpError
 from worktrack.outbox import (
     EgressBypassBlockedError,
     OutboxDispatcher,
@@ -48,6 +62,7 @@ from worktrack.outbox import (
     RollupEngine,
     RollupSink,
 )
+from worktrack.reconciler import ReconcilerError, RetroSplitConflictError
 from worktrack.secrets import (
     OAuthBrokerError,
     OAuthInvalidClientError,
@@ -58,6 +73,7 @@ from worktrack.secrets import (
     UserTokenStore,
     scrub_secrets,
 )
+from worktrack.sensors import SensorError
 from worktrack.telemetry import StructuredEventLogger, TelemetryRecorder
 
 # region Constants
@@ -143,9 +159,7 @@ class WebServiceContainer:
     def open_ledger(self) -> Iterator[Ledger]:
         """Open a migrated SQLite `Ledger` bound to `self.settings.db_path`."""
         with Ledger.from_settings(
-            self.settings,
-            telemetry=self.telemetry,
-            environ=self.environ,
+            self.settings, telemetry=self.telemetry, environ=self.environ
         ) as ledger:
             yield ledger
 
@@ -153,10 +167,7 @@ class WebServiceContainer:
     def open_planner(self, *, ledger: Ledger | None = None) -> Iterator[AgendaPlanner]:
         """Open a migrated `AgendaPlanner` bound to `self.settings.db_path`."""
         with AgendaPlanner.from_settings(
-            self.settings,
-            ledger=ledger,
-            telemetry=self.telemetry,
-            environ=self.environ,
+            self.settings, ledger=ledger, telemetry=self.telemetry, environ=self.environ
         ) as planner:
             yield planner
 
@@ -166,16 +177,10 @@ class WebServiceContainer:
         with (
             self.open_ledger() as ledger,
             OutboxStore.from_settings(
-                self.settings,
-                telemetry=self.telemetry,
-                environ=self.environ,
+                self.settings, telemetry=self.telemetry, environ=self.environ
             ) as store,
         ):
-            engine = RollupEngine(
-                ledger=ledger,
-                outbox_store=store,
-                telemetry=self.telemetry,
-            )
+            engine = RollupEngine(ledger=ledger, outbox_store=store, telemetry=self.telemetry)
             dispatcher = OutboxDispatcher(
                 outbox_store=store,
                 sinks=self.sinks,
@@ -184,6 +189,18 @@ class WebServiceContainer:
                 environ=self.environ,
             )
             yield ledger, store, engine, dispatcher
+
+    @contextmanager
+    def open_clue_store(self) -> Iterator[ClueStore]:
+        """Open a migrated `ClueStore` bound to `self.settings.db_path`."""
+        with ClueStore.from_settings(self.settings, environ=self.environ) as store:
+            yield store
+
+    @contextmanager
+    def open_hub_ingest_store(self) -> Iterator[HubRollupIngestStore]:
+        """Open a migrated `HubRollupIngestStore` bound to `self.settings.db_path`."""
+        with HubRollupIngestStore.from_settings(self.settings, environ=self.environ) as store:
+            yield store
 
 
 # endregion
@@ -368,10 +385,15 @@ def worktrack_exception_handler(exc: Exception, context: dict[str, Any]) -> Resp
 
 def _classify_domain_exception(exc: Exception) -> tuple[int, str] | None:
     """Map a Worktrack exception instance to `(http_status_code, error_code)`."""
-    if isinstance(exc, (NotFoundError, OutboxItemNotFoundError)):
+    if isinstance(exc, (NotFoundError, OutboxItemNotFoundError, ClueNotFoundError)):
         return status.HTTP_404_NOT_FOUND, "not_found"
     if isinstance(exc, EgressBypassBlockedError):
         return status.HTTP_403_FORBIDDEN, "egress_bypass_blocked"
+    if isinstance(
+        exc,
+        (CalendarAuthenticationError, HubAuthenticationError, ForgeAuthenticationError),
+    ):
+        return status.HTTP_401_UNAUTHORIZED, "authentication_error"
     if isinstance(
         exc,
         (
@@ -381,6 +403,7 @@ def _classify_domain_exception(exc: Exception) -> tuple[int, str] | None:
             NoActiveIntervalError,
             AttributionCycleError,
             OutboxStateError,
+            RetroSplitConflictError,
         ),
     ):
         return status.HTTP_409_CONFLICT, "conflict"
@@ -400,6 +423,13 @@ def _classify_domain_exception(exc: Exception) -> tuple[int, str] | None:
             LedgerError,
             AgendaError,
             OutboxError,
+            CollectorError,
+            SensorError,
+            ReconcilerError,
+            CalendarConnectorError,
+            McpError,
+            ExporterError,
+            HubSyncError,
         ),
     ):
         return status.HTTP_400_BAD_REQUEST, "validation_error"

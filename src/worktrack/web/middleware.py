@@ -67,6 +67,18 @@ ROUTE_LABEL_BY_URL_NAME: Final[dict[str, str]] = {
     "api_v1_egress_ledger_list": "api_v1_egress_ledger",
     "api_v1_oauth_exchange": "api_v1_oauth_exchange",
     "api_v1_oauth_refresh": "api_v1_oauth_refresh",
+    "api_v1_clues_list": "api_v1_clues",
+    "api_v1_clues_git_sync": "api_v1_clues",
+    "api_v1_sensors_evaluate": "api_v1_sensors",
+    "api_v1_reconciler_inspect": "api_v1_reconciler",
+    "api_v1_reconciler_propose": "api_v1_reconciler",
+    "api_v1_reconciler_apply": "api_v1_reconciler",
+    "api_v1_calendar_sync": "api_v1_calendar",
+    "api_v1_calendar_stage_focus": "api_v1_calendar",
+    "api_v1_hub_rollups": "api_v1_hub",
+    "api_v1_hub_catalog": "api_v1_hub",
+    "api_v1_exports_workplace_tax": "api_v1_exports",
+    "api_v1_exports_entity_attribution": "api_v1_exports",
 }
 # endregion
 

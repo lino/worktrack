@@ -9,6 +9,7 @@ from datetime import UTC, datetime
 from typing import Final, TextIO
 
 from worktrack.agenda.planner import AgendaPlanner
+from worktrack.collectors.store import ClueStore
 from worktrack.config import WorktrackSettings
 from worktrack.core.exceptions import ActivityNotFoundError, LedgerValidationError
 from worktrack.core.ledger import Ledger
@@ -26,6 +27,7 @@ from worktrack.core.models import (
     FacetValue,
     format_utc_iso,
 )
+from worktrack.hub_sync.ingest_store import HubRollupIngestStore
 from worktrack.outbox.store import OutboxStore
 from worktrack.telemetry.metrics import TelemetryRecorder
 
@@ -46,6 +48,13 @@ SUBCOMMAND_AGENDA: Final = "agenda"
 SUBCOMMAND_OUTBOX: Final = "outbox"
 SUBCOMMAND_JIRA: Final = "jira"
 SUBCOMMAND_SERVE: Final = "serve"
+SUBCOMMAND_CLUE: Final = "clue"
+SUBCOMMAND_SENSOR: Final = "sensor"
+SUBCOMMAND_RECONCILE: Final = "reconcile"
+SUBCOMMAND_CALENDAR: Final = "calendar"
+SUBCOMMAND_MCP: Final = "mcp"
+SUBCOMMAND_HUB: Final = "hub"
+SUBCOMMAND_EXPORT: Final = "export"
 SUBCOMMAND_DAEMON: Final = "daemon"
 SUBCOMMAND_STATUS: Final = "status"
 SUBCOMMAND_METRICS: Final = "metrics"
@@ -66,6 +75,13 @@ CANONICAL_CLI_SUBCOMMANDS: Final[frozenset[str]] = frozenset(
         SUBCOMMAND_OUTBOX,
         SUBCOMMAND_JIRA,
         SUBCOMMAND_SERVE,
+        SUBCOMMAND_CLUE,
+        SUBCOMMAND_SENSOR,
+        SUBCOMMAND_RECONCILE,
+        SUBCOMMAND_CALENDAR,
+        SUBCOMMAND_MCP,
+        SUBCOMMAND_HUB,
+        SUBCOMMAND_EXPORT,
         SUBCOMMAND_DAEMON,
         SUBCOMMAND_STATUS,
         SUBCOMMAND_METRICS,
@@ -132,6 +148,24 @@ class CliContext:
         with OutboxStore.from_settings(
             self.settings,
             telemetry=self.telemetry,
+            environ=self.environ,
+        ) as store:
+            yield store
+
+    @contextmanager
+    def open_clue_store(self) -> Iterator[ClueStore]:
+        """Open a migrated `ClueStore` bound to `settings.db_path`."""
+        with ClueStore.from_settings(
+            self.settings,
+            environ=self.environ,
+        ) as store:
+            yield store
+
+    @contextmanager
+    def open_hub_ingest_store(self) -> Iterator[HubRollupIngestStore]:
+        """Open a migrated `HubRollupIngestStore` bound to `settings.db_path`."""
+        with HubRollupIngestStore.from_settings(
+            self.settings,
             environ=self.environ,
         ) as store:
             yield store

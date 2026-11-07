@@ -6,6 +6,22 @@ from django.urls import URLPattern, path
 from drf_spectacular.views import SpectacularAPIView
 
 from worktrack.web.apps import neutralize_lazy_admin_site
+from worktrack.web.views_calendar_hub_exports import (
+    CalendarStageFocusView,
+    CalendarSyncView,
+    EntityAttributionExportView,
+    HubCatalogView,
+    HubRollupsView,
+    WorkplaceTaxExportView,
+)
+from worktrack.web.views_clues_reconciler import (
+    ClueGitSyncView,
+    ClueListView,
+    ReconcilerApplyView,
+    ReconcilerInspectView,
+    ReconcilerProposeView,
+    SensorEvaluateView,
+)
 from worktrack.web.views_core import (
     ActivityDetailView,
     ActivityListCreateView,
@@ -172,5 +188,53 @@ urlpatterns: list[URLPattern] = [
         "api/v1/oauth/<str:provider>/refresh/",
         OAuthRefreshView.as_view(),
         name="api_v1_oauth_refresh",
+    ),
+    path("api/v1/clues/", ClueListView.as_view(), name="api_v1_clues_list"),
+    path(
+        "api/v1/clues/git-sync/",
+        ClueGitSyncView.as_view(),
+        name="api_v1_clues_git_sync",
+    ),
+    path(
+        "api/v1/sensors/evaluate/",
+        SensorEvaluateView.as_view(),
+        name="api_v1_sensors_evaluate",
+    ),
+    path(
+        "api/v1/reconciler/inspect/",
+        ReconcilerInspectView.as_view(),
+        name="api_v1_reconciler_inspect",
+    ),
+    path(
+        "api/v1/reconciler/propose/",
+        ReconcilerProposeView.as_view(),
+        name="api_v1_reconciler_propose",
+    ),
+    path(
+        "api/v1/reconciler/apply/",
+        ReconcilerApplyView.as_view(),
+        name="api_v1_reconciler_apply",
+    ),
+    path(
+        "api/v1/calendar/sync/",
+        CalendarSyncView.as_view(),
+        name="api_v1_calendar_sync",
+    ),
+    path(
+        "api/v1/calendar/stage-focus/",
+        CalendarStageFocusView.as_view(),
+        name="api_v1_calendar_stage_focus",
+    ),
+    path("api/v1/hub/rollups/", HubRollupsView.as_view(), name="api_v1_hub_rollups"),
+    path("api/v1/hub/catalog/", HubCatalogView.as_view(), name="api_v1_hub_catalog"),
+    path(
+        "api/v1/exports/workplace-tax/",
+        WorkplaceTaxExportView.as_view(),
+        name="api_v1_exports_workplace_tax",
+    ),
+    path(
+        "api/v1/exports/entity-attribution/",
+        EntityAttributionExportView.as_view(),
+        name="api_v1_exports_entity_attribution",
     ),
 ]

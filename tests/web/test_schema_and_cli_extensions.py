@@ -15,10 +15,10 @@ from worktrack.cli import (
     LedgerIpcServiceProvider,
     main,
 )
-from worktrack.config import DEFAULT_MAX_LABEL_VALUES
 from worktrack.connectors import DEFAULT_JIRA_HTTP_TIMEOUT_SECONDS, JiraHttpResponse
 from worktrack.outbox import ApprovedOutboxGrant, OutboxItem, SinkWriteReceipt, enforce_outbox_grant
 from worktrack.secrets import OAuthTokenBundle, SecretValue, UserTokenStore
+from worktrack.telemetry.catalog import CANONICAL_LABEL_VALUE_CEILING
 from worktrack.web.schema_export import (
     DEFAULT_SCHEMA_OUTPUT_PATH,
     export_openapi_schema,
@@ -166,7 +166,7 @@ def test_openapi_31_schema_export_is_deterministic_warning_free_and_complete(
 def test_wt_outbox_cli_workflow_and_ipc_provider_live_outbox_summary(tmp_path: Path) -> None:
     """Verify `wt outbox {preview,list,approve,reject,flush,ledger}` and IPC `outbox_summary`."""
     assert {"outbox", "jira", "serve"} <= CANONICAL_CLI_SUBCOMMANDS
-    assert len(CANONICAL_CLI_SUBCOMMANDS) <= DEFAULT_MAX_LABEL_VALUES
+    assert len(CANONICAL_CLI_SUBCOMMANDS) <= CANONICAL_LABEL_VALUE_CEILING
 
     from worktrack.cli.commands_outbox import use_cli_sinks
 

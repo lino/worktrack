@@ -2,7 +2,17 @@
 
 from __future__ import annotations
 
+from worktrack.cli.commands_calendar_mcp_hub_export import (
+    register_calendar_mcp_hub_export_subparsers,
+    use_cli_stdin,
+    use_hub_transport,
+)
 from worktrack.cli.commands_capture import register_capture_subparsers
+from worktrack.cli.commands_clues_sensors import (
+    register_clues_sensors_subparsers,
+    use_git_log_runner,
+    use_workstation_probe,
+)
 from worktrack.cli.commands_ops import register_ops_subparsers
 from worktrack.cli.commands_outbox import register_outbox_subparsers, use_cli_sinks
 from worktrack.cli.commands_planning import register_planning_subparsers
@@ -17,16 +27,23 @@ from worktrack.cli.context import (
     EXIT_SUCCESS,
     EXIT_USAGE_ERROR,
     SUBCOMMAND_AGENDA,
+    SUBCOMMAND_CALENDAR,
+    SUBCOMMAND_CLUE,
     SUBCOMMAND_DAEMON,
+    SUBCOMMAND_EXPORT,
     SUBCOMMAND_FACT,
     SUBCOMMAND_HELP,
+    SUBCOMMAND_HUB,
     SUBCOMMAND_IN,
     SUBCOMMAND_JIRA,
     SUBCOMMAND_LOG,
+    SUBCOMMAND_MCP,
     SUBCOMMAND_METRICS,
     SUBCOMMAND_NOW,
     SUBCOMMAND_OUT,
     SUBCOMMAND_OUTBOX,
+    SUBCOMMAND_RECONCILE,
+    SUBCOMMAND_SENSOR,
     SUBCOMMAND_SERVE,
     SUBCOMMAND_SPLIT,
     SUBCOMMAND_STATUS,
@@ -59,16 +76,23 @@ __all__ = [
     "EXIT_SUCCESS",
     "EXIT_USAGE_ERROR",
     "SUBCOMMAND_AGENDA",
+    "SUBCOMMAND_CALENDAR",
+    "SUBCOMMAND_CLUE",
     "SUBCOMMAND_DAEMON",
+    "SUBCOMMAND_EXPORT",
     "SUBCOMMAND_FACT",
     "SUBCOMMAND_HELP",
+    "SUBCOMMAND_HUB",
     "SUBCOMMAND_IN",
     "SUBCOMMAND_JIRA",
     "SUBCOMMAND_LOG",
+    "SUBCOMMAND_MCP",
     "SUBCOMMAND_METRICS",
     "SUBCOMMAND_NOW",
     "SUBCOMMAND_OUT",
     "SUBCOMMAND_OUTBOX",
+    "SUBCOMMAND_RECONCILE",
+    "SUBCOMMAND_SENSOR",
     "SUBCOMMAND_SERVE",
     "SUBCOMMAND_SPLIT",
     "SUBCOMMAND_STATUS",
@@ -86,7 +110,9 @@ __all__ = [
     "main",
     "normalize_cli_subcommand",
     "parse_cli_timestamp",
+    "register_calendar_mcp_hub_export_subparsers",
     "register_capture_subparsers",
+    "register_clues_sensors_subparsers",
     "register_ops_subparsers",
     "register_outbox_subparsers",
     "register_planning_subparsers",
@@ -94,5 +120,9 @@ __all__ = [
     "resolve_or_create_activity",
     "serve_wsgi_until_stopped",
     "use_cli_sinks",
+    "use_cli_stdin",
+    "use_git_log_runner",
+    "use_hub_transport",
     "use_jira_transport",
+    "use_workstation_probe",
 ]
