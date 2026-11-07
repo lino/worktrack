@@ -9,9 +9,19 @@ import { createORM, useRepo } from 'pinia-orm';
 import { beforeEach, describe, expect, it } from 'vitest';
 import alertsYaml from '../../deploy/alerts.yml?raw';
 import runbookMd from '../../docs/operations/runbook.md?raw';
+import userGuideMd from '../../docs/user/guide.md?raw';
 import App from '../src/App.vue';
 import { formatHumanDuration, formatIsoDuration } from '../src/composables/useDurationFormat';
-import { IntervalModel, OutboxItemModel, seedCockpitDemoState } from '../src/models';
+import {
+  ClueModel,
+  ContextFactModel,
+  ExportReportModel,
+  IntervalModel,
+  OutboxItemModel,
+  ReconcileProposalModel,
+  SensorSuggestionModel,
+  seedCockpitDemoState,
+} from '../src/models';
 
 describe('Duration formatting and Cockpit Views', () => {
   beforeEach(() => {
@@ -96,7 +106,57 @@ describe('Duration formatting and Cockpit Views', () => {
     wrapper.unmount();
   });
 
-  it('verifies deploy/alerts.yml runbook_url anchors resolve in docs/operations/runbook.md', () => {
+  it('renders Reconciler & Clues view (s chord) and Tax & Attribution Exports view with interactive actions', async () => {
+    const wrapper = mount(App, {
+      attachTo: document.body,
+    });
+
+    expect(useRepo(ClueModel).all().length).toBeGreaterThanOrEqual(2);
+    expect(useRepo(SensorSuggestionModel).all().length).toBeGreaterThanOrEqual(1);
+    expect(useRepo(ReconcileProposalModel).all().length).toBeGreaterThanOrEqual(1);
+    expect(useRepo(ExportReportModel).all().length).toBeGreaterThanOrEqual(2);
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 's' }));
+    await wrapper.vm.$nextTick();
+    expect(wrapper.text()).toContain('Reconciler, Clues & Workplace Sensors');
+    expect(wrapper.text()).toContain('commit-a1b2c3d');
+
+    const applySensorBtn = wrapper.find('[data-testid="btn-apply-sensor"]');
+    expect(applySensorBtn.exists()).toBe(true);
+    await applySensorBtn.trigger('click');
+    const updatedFact = useRepo(ContextFactModel).find('fact-workplace-today');
+    expect(updatedFact?.source).toBe('sensor');
+
+    const equalStrategyRadio = wrapper.find('input[name="retrosplit_strategy"][value="equal"]');
+    expect(equalStrategyRadio.exists()).toBe(true);
+    await equalStrategyRadio.setValue('equal');
+
+    const applySplitBtn = wrapper.find('[data-testid="btn-apply-retrosplit"]');
+    expect(applySplitBtn.exists()).toBe(true);
+    await applySplitBtn.trigger('click');
+    const proposalAfter = useRepo(ReconcileProposalModel).first();
+    expect(proposalAfter?.strategy).toBe('equal');
+    const splitIntervals = useRepo(IntervalModel)
+      .where('capture_mode', 'structured')
+      .get();
+    expect(splitIntervals.length).toBeGreaterThanOrEqual(2);
+
+    await wrapper.find('[data-testid="nav-exports"]').trigger('click');
+    expect(wrapper.text()).toContain('Tax & Multi-Entity Attribution Exports');
+    expect(wrapper.text()).toContain('home_office');
+    expect(wrapper.text()).toContain('Studio Babelsberg');
+
+    const csvRadio = wrapper.find('input[name="export_format"][value="csv"]');
+    expect(csvRadio.exists()).toBe(true);
+    await csvRadio.setValue('csv');
+    expect(wrapper.find('[data-testid="export-preview-output"]').text()).toContain(
+      'workplace,day_count,tracked_hours',
+    );
+
+    wrapper.unmount();
+  });
+
+  it('verifies deploy/alerts.yml runbook_url anchors and Wave 2-4 Zensical User/Operations manual coverage', () => {
     const normalizedRunbook = runbookMd.toLowerCase();
     const anchorMatches = [...alertsYaml.matchAll(/runbook_url:\s*"[^"#]+#([a-z0-9_-]+)"/g)];
     expect(anchorMatches.length).toBe(6);
@@ -104,5 +164,19 @@ describe('Duration formatting and Cockpit Views', () => {
       const anchorSlug = match[1];
       expect(normalizedRunbook).toContain(`### ${anchorSlug}`);
     }
+
+    for (const cmd of [
+      'wt clue',
+      'wt sensor evaluate',
+      'wt reconcile',
+      'wt calendar',
+      'wt mcp',
+      'wt hub',
+      'wt export',
+    ]) {
+      expect(userGuideMd).toContain(cmd);
+    }
+    expect(runbookMd).toContain('wt mcp');
+    expect(runbookMd).toContain('wt hub');
   });
 });

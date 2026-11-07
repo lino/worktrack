@@ -15,6 +15,12 @@ import {
   FocusBlockModel,
   OutboxItemModel,
 } from './planning_and_outbox';
+import {
+  ClueModel,
+  ExportReportModel,
+  ReconcileProposalModel,
+  SensorSuggestionModel,
+} from './reconciler_and_exports';
 
 /**
  * Seed default `Activity` records into `pinia-orm`.
@@ -246,6 +252,146 @@ function seedOutboxAndEgressReceipts(): void {
 }
 
 /**
+ * Seed default Wave 2 `Clue` and `SensorSuggestion` records into `pinia-orm`.
+ */
+function seedCluesAndSensors(): void {
+  useRepo(ClueModel).save([
+    {
+      id: 'clue-git-1',
+      source: 'git',
+      external_key: 'commit-a1b2c3d',
+      external_id: 'commit-a1b2c3d',
+      occurred_at: '2026-11-07T10:35:00Z',
+      summary: 'feat(outbox): enforce SHA-256 receipt check [PROJ-142]',
+      inferred_activity_key: 'PROJ-142',
+      activity_id: 'act-proj-142',
+      confidence: 0.95,
+      metadata: { branch: 'feat/outbox' },
+      created_at: '2026-11-07T10:36:00Z',
+    },
+    {
+      id: 'clue-forge-2',
+      source: 'github',
+      external_key: 'mr-88',
+      external_id: 'mr-88',
+      occurred_at: '2026-11-07T10:50:00Z',
+      summary: 'Review architecture ADR for Standing Activities [PROJ-100]',
+      inferred_activity_key: 'PROJ-100',
+      activity_id: 'act-standing-review',
+      confidence: 0.85,
+      metadata: { repository: 'worktrack' },
+      created_at: '2026-11-07T10:51:00Z',
+    },
+  ]);
+
+  useRepo(SensorSuggestionModel).save([
+    {
+      scope_date: '2026-11-07',
+      workplace: 'home_office',
+      rule_id: 'rule-home-wifi',
+      confidence: 0.95,
+      matched_signals: ['wifi_ssid=HomeFiber5G', 'display_count=2'],
+      snapshot: { wifi_ssid: 'HomeFiber5G', display_count: 2 },
+      clue_id: 'clue-sensor-1',
+      context_fact_id: 'fact-workplace-today',
+    },
+  ]);
+}
+
+/**
+ * Seed default Wave 2 `ReconcileProposal` (`RetroSplit`) records into `pinia-orm`.
+ */
+function seedReconcilerProposals(): void {
+  useRepo(ReconcileProposalModel).save([
+    {
+      proposal_id: 'prop-demo-1',
+      strategy: 'proportional',
+      interval_ids: ['int-chaotic-2'],
+      total_duration_seconds: 2700,
+      allocated_duration_seconds: 2700,
+      is_conserved: true,
+      normalized_weights: { 'act-proj-142': 0.67, 'act-standing-review': 0.33 },
+      slices: [
+        {
+          interval_id: 'int-chaotic-2',
+          activity_id: 'act-proj-142',
+          activity_name: 'PROJ-142 Outbox Rollup Gate',
+          started_at: '2026-11-07T10:30:00Z',
+          ended_at: '2026-11-07T11:00:00Z',
+          duration_seconds: 1800,
+          weight: 2.0,
+          share: 0.67,
+          notes: 'RetroSplit slice (PROJ-142)',
+          tags: ['retrosplit'],
+        },
+        {
+          interval_id: 'int-chaotic-2',
+          activity_id: 'act-standing-review',
+          activity_name: 'Code Review & Architecture Triage',
+          started_at: '2026-11-07T11:00:00Z',
+          ended_at: '2026-11-07T11:15:00Z',
+          duration_seconds: 900,
+          weight: 1.0,
+          share: 0.33,
+          notes: 'RetroSplit slice (PROJ-100)',
+          tags: ['retrosplit'],
+        },
+      ],
+      created_at: '2026-11-07T11:20:00Z',
+    },
+  ]);
+}
+
+/**
+ * Seed default Wave 4 `ExportReport` records for annual tax and `Entity` attribution.
+ */
+function seedExportReports(): void {
+  const baseTaxReport = {
+    start_date: '2026-01-01',
+    end_date: '2026-12-31',
+    total_classified_days: 1,
+    total_tracked_seconds: 8100,
+    total_tracked_hours: 2.25,
+    days_by_workplace: { home_office: 1 },
+  };
+  useRepo(ExportReportModel).save([
+    {
+      id: 'workplace-tax:2026:markdown',
+      kind: 'workplace-tax',
+      format: 'markdown',
+      rendered: '| Workplace | Days | Hours |\n| --- | --- | --- |\n| home_office | 1 | 2.25 |',
+      report: baseTaxReport,
+      updated_at: '2026-11-07T18:00:00Z',
+    },
+    {
+      id: 'workplace-tax:2026:csv',
+      kind: 'workplace-tax',
+      format: 'csv',
+      rendered: 'workplace,day_count,tracked_hours\nhome_office,1,2.25\n',
+      report: baseTaxReport,
+      updated_at: '2026-11-07T18:00:00Z',
+    },
+    {
+      id: 'workplace-tax:2026:json',
+      kind: 'workplace-tax',
+      format: 'json',
+      rendered: JSON.stringify({ workplace: 'home_office', day_count: 1, tracked_hours: 2.25 }),
+      report: baseTaxReport,
+      updated_at: '2026-11-07T18:00:00Z',
+    },
+    {
+      id: 'entity-attribution:2026:markdown',
+      kind: 'entity-attribution',
+      format: 'markdown',
+      rendered:
+        '| Entity | Kind | Share |\n| --- | --- | --- |\n| Worktrack Privacy Ledger | project | 70% |\n| Studio Babelsberg | customer | 30% |',
+      report: { total_interval_seconds: 5400, total_interval_hours: 1.5 },
+      updated_at: '2026-11-07T18:00:00Z',
+    },
+  ]);
+}
+
+/**
  * Populate normalized `pinia-orm` repositories with representative domain records
  * when the store is empty.
  */
@@ -259,4 +405,7 @@ export function seedCockpitDemoState(): void {
   seedAttributionsAndFacts();
   seedAgendaAndFocusBlocks();
   seedOutboxAndEgressReceipts();
+  seedCluesAndSensors();
+  seedReconcilerProposals();
+  seedExportReports();
 }

@@ -72,26 +72,33 @@ log_level = "INFO"
 
 All `wt` subcommands support human-readable terminal output by default and `--json` for machine scripting:
 
-| Subcommand  | Usage Example                                                              | Description                                                                   |
-| ----------- | -------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `wt in`     | `wt in PROJ-142 --notes "Drafting Outbox spec"`                            | Start an active structured `Interval` (auto-creates local `Activity` if new). |
-| `wt out`    | `wt out --notes "Completed slice"`                                         | Close the currently open `Interval` and compute its elapsed duration.         |
-| `wt log`    | `wt log --start 2026-11-07T09:00:00Z --end 2026-11-07T10:30:00Z`           | Record a closed structured or unallocated **chaotic** `Interval`.             |
-| `wt bind`   | `wt bind <interval_id> PROJ-142`                                           | Retroactively bind an unallocated chaotic `Interval` to an `Activity`.        |
-| `wt split`  | `wt split <interval_id> --slice PROJ-142:1800 --slice PROJ-100:900`        | Split one `Interval` into contiguous attributed child `Intervals`.            |
-| `wt status` | `wt status --porcelain`                                                    | Query active timer and daily total via fast `worktrackd` IPC or SQLite.       |
-| `wt now`    | `wt now`                                                                   | Show active `Interval`, active/upcoming `FocusBlock`, and `workplace` fact.   |
-| `wt today`  | `wt today`                                                                 | Show daily `Activity` totals, `Entity` attribution shares, and `Agenda`.      |
-| `wt week`   | `wt week`                                                                  | Show weekly allocation breakdown, unallocated chaotic seconds, and deadlines. |
-| `wt plan`   | `wt plan PROJ-142 --horizon today --priority 1 --budget-minutes 120`       | Schedule or update a prioritized `AgendaItem` in `today` or `this_week`.      |
-| `wt focus`  | `wt focus --label "Deep Work" --start ... --end ... --expose-busy`         | Schedule a timeboxed `FocusBlock` with optional opaque calendar busy flag.    |
-| `wt fact`   | `wt fact set workplace home_office --date 2026-11-07`                      | Assert a date- or interval-scoped `ContextFact` (or register custom `Facet`). |
-| `wt entity` | `wt entity add customer BABELSBERG --name "Studio Babelsberg"`             | Register a non-strict `Entity` node (`project`, `customer`, `component`).     |
-| `wt attr`   | `wt attr add --activity PROJ-142 --target customer:babelsberg --weight 1`  | Connect an `Activity` or `Entity` to a target `Entity` with a DAG weight.     |
-| `wt outbox` | `wt outbox preview --stage` / `wt outbox approve <id>` / `wt outbox flush` | Preview `Rollup` diffs, approve/reject staged items, or flush to `Sinks`.     |
-| `wt jira`   | `wt jira sync-issues --jql "assignee = currentUser()"`                     | Import Jira Cloud v3 issues into assignable `Activities` and `Entities`.      |
-| `wt serve`  | `wt serve --host 127.0.0.1 --port 8000`                                    | Run the local Django + DRF + `drf-spectacular` API and browser cockpit host.  |
-| `wt daemon` | `wt daemon --once`                                                         | Run the low-latency `worktrackd` Unix/TCP IPC socket server.                  |
+| Subcommand     | Usage Example                                                                    | Description                                                                      |
+| -------------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `wt in`        | `wt in PROJ-142 --notes "Drafting Outbox spec"`                                  | Start an active structured `Interval` (auto-creates local `Activity` if new).    |
+| `wt out`       | `wt out --notes "Completed slice"`                                               | Close the currently open `Interval` and compute its elapsed duration.            |
+| `wt log`       | `wt log --start 2026-11-07T09:00:00Z --end 2026-11-07T10:30:00Z`                 | Record a closed structured or unallocated **chaotic** `Interval`.                |
+| `wt bind`      | `wt bind <interval_id> PROJ-142`                                                 | Retroactively bind an unallocated chaotic `Interval` to an `Activity`.           |
+| `wt split`     | `wt split <interval_id> --slice PROJ-142:1800 --slice PROJ-100:900`              | Split one `Interval` into contiguous attributed child `Intervals`.               |
+| `wt status`    | `wt status --porcelain`                                                          | Query active timer and daily total via fast `worktrackd` IPC or SQLite.          |
+| `wt now`       | `wt now`                                                                         | Show active `Interval`, active/upcoming `FocusBlock`, and `workplace` fact.      |
+| `wt today`     | `wt today`                                                                       | Show daily `Activity` totals, `Entity` attribution shares, and `Agenda`.         |
+| `wt week`      | `wt week`                                                                        | Show weekly allocation breakdown, unallocated chaotic seconds, and deadlines.    |
+| `wt plan`      | `wt plan PROJ-142 --horizon today --priority 1 --budget-minutes 120`             | Schedule or update a prioritized `AgendaItem` in `today` or `this_week`.         |
+| `wt focus`     | `wt focus --label "Deep Work" --start ... --end ... --expose-busy`               | Schedule a timeboxed `FocusBlock` with optional opaque calendar busy flag.       |
+| `wt fact`      | `wt fact set workplace home_office --date 2026-11-07`                            | Assert a date- or interval-scoped `ContextFact` (or register custom `Facet`).    |
+| `wt entity`    | `wt entity add customer BABELSBERG --name "Studio Babelsberg"`                   | Register a non-strict `Entity` node (`project`, `customer`, `component`).        |
+| `wt attr`      | `wt attr add --activity PROJ-142 --target customer:babelsberg --weight 1`        | Connect an `Activity` or `Entity` to a target `Entity` with a DAG weight.        |
+| `wt outbox`    | `wt outbox preview --stage` / `wt outbox approve <id>` / `wt outbox flush`       | Preview `Rollup` diffs, approve/reject staged items, or flush to `Sinks`.        |
+| `wt jira`      | `wt jira sync-issues --jql "assignee = currentUser()"`                           | Import Jira Cloud v3 issues into assignable `Activities` and `Entities`.         |
+| `wt clue`      | `wt clue list --source git` / `wt clue git-sync --repo "$HOME/work/repo"`        | List local `Clues` or scan Git / GitHub / GitLab commit history for issue keys.  |
+| `wt sensor`    | `wt sensor evaluate --date 2026-11-07 --apply`                                   | Evaluate local CIDR, Wi-Fi SSID, VPN, and display rules to infer `workplace`.    |
+| `wt reconcile` | `wt reconcile inspect` / `wt reconcile propose` / `wt reconcile apply`           | Detect plausibility gaps and split chaotic `Intervals` via `RetroSplitEngine`.   |
+| `wt calendar`  | `wt calendar sync --ics-file "$XDG_DATA_HOME/worktrack/cal.ics"` / `stage-focus` | Import iCal/JMAP/MS 365 meetings or stage `FocusBlocks` for `CalendarFocusSink`. |
+| `wt mcp`       | `wt mcp` / `wt mcp --once`                                                       | Run the Outbox-guarded JSON-RPC 2.0 Model Context Protocol server over stdio.    |
+| `wt hub`       | `wt hub status` / `wt hub pull-catalog --hub-url https://hub.example.invalid`    | Inspect Ganglia-style `Hub` rollups or pull shared `Entity` catalog & templates. |
+| `wt export`    | `wt export tax --year 2026 --format csv` / `wt export attribution --start ...`   | Render deterministic `CSV`, `JSON`, or `Markdown` tax and `Attribution` reports. |
+| `wt serve`     | `wt serve --host 127.0.0.1 --port 8000`                                          | Run the local Django + DRF + `drf-spectacular` API and browser cockpit host.     |
+| `wt daemon`    | `wt daemon --once`                                                               | Run the low-latency `worktrackd` Unix/TCP IPC socket server.                     |
 
 ## Browser Cockpit & Keyboard Shortcuts
 
@@ -105,9 +112,10 @@ The Vue 3 + Vuetify + `@hey-api/openapi-ts` + `pinia-orm` cockpit (`frontend/`) 
 | `p`              | Switch to **Today / Week Agenda & FocusBlocks** (prioritized queues, budgets, deadlines).        |
 | `c`              | Switch to **Chaotic Interval & Attribution Editor** (record/bind intervals and DAG weights).     |
 | `o`              | Switch to **Outbox Diff Preview & EgressLedger** (approve/reject rollups, inspect SHA-256 logs). |
+| `s`              | Switch to **Reconciler, Clues & Workplace Sensors** (`RetroSplit`, Git clues, sensor inference). |
 | `Esc` / Backdrop | Dismiss any open modal `<dialog closedby="any">` and return focus to the invoking control.       |
 
-Single-key chords (`c`, `p`, `o`, `f`, `?`, `:`) are automatically suppressed while typing inside `<input>`, `<textarea>`, `<select>`, or `contenteditable` fields and during active IME composition (`event.isComposing`).
+Single-key chords (`c`, `p`, `o`, `f`, `s`, `?`, `:`) are automatically suppressed while typing inside `<input>`, `<textarea>`, `<select>`, or `contenteditable` fields and during active IME composition (`event.isComposing`).
 
 ## Cross-Shell Prompt Integrations (`shell/`)
 
@@ -128,18 +136,30 @@ Worktrack enforces an architectural anti-surveillance gate between your private 
 1. **Explicit Approval Gate (`ApprovedOutboxGrant`)**: Every staged `OutboxItem` displays its before/after duration delta and exact outbound JSON preview. No `Sink` adapter can transmit data without a cryptographically sealed `ApprovedOutboxGrant` token minted by approving the `OutboxItem`.
 1. **Immutable Audit Trail (`EgressLedger`)**: Every flush attempt records an append-only `EgressRecord` containing the UTC timestamp, destination URI, canonical payload SHA-256 digest, HTTP status, external receipt ID, and W3C `FRITZ_TRACE_ID`.
 
-## Custom `workplace` `Facets` & `ContextFacts` for Tax Returns
+## Custom `workplace` `Facets`, Local `Sensors` & Tax / Attribution Exports
 
 Worktrack seeds the built-in `workplace` `Facet` (`enum[home_office, office, mobile_work]`) automatically so you can record daily or per-interval location facts for annual tax deductions without leaking location data to external ticket trackers:
 
 ```bash
-# Assert today's workplace for tax reporting
+# Assert today's workplace manually or evaluate local workstation sensor rules
 wt fact set workplace home_office --date 2026-11-07
+wt sensor evaluate --date 2026-11-07 --apply
 
 # Register a custom Facet schema and assert a ContextFact
 wt fact register-facet billable_rate_tier --type enum --values standard, overtime, research
 wt fact set billable_rate_tier research --date 2026-11-07
+
+# Export deterministic annual workplace tax and multi-entity Attribution reports
+wt export tax --year 2026 --format markdown
+wt export attribution --start 2026-11-01T00:00:00Z --end 2026-11-08T00:00:00Z --format csv
 ```
+
+## Ambient `Clues`, `RetroSplit` Reconciliation, Calendar & MCP Workflows
+
+1. **Git & Forge Clue Collection (`wt clue`)**: Scan local Git repositories (and optional GitHub/GitLab APIs authenticated via `UserTokenStore`) to populate local `Clue` hints linked to `Activities` without auto-booking time.
+1. **Plausibility Reconciler & `RetroSplit` (`wt reconcile`, Cockpit `s`)**: Detect completed `AgendaItems` or `Clues` lacking booked `Intervals` and split chaotic unallocated `Intervals` across `proportional`, `equal`, or explicit `weights` strategies while conserving exact total seconds.
+1. **Calendar Connectors & Focus Staging (`wt calendar`)**: Import iCal (`.ics`), JMAP (`CalendarEvent`), or Microsoft 365 meetings into *Standing* or *Targeted Activities*, and stage `expose_busy=True` `FocusBlocks` into `Outbox` for opaque `"Focus Time"` publishing.
+1. **Outbox-Guarded MCP & Ganglia `Hub` Sync (`wt mcp`, `wt hub`)**: Expose read and Outbox-staging tools to local AI assistants over JSON-RPC 2.0 `stdio` (`wt mcp`) and synchronize shared `Entity` catalogs (`wt hub pull-catalog`).
 
 ## CLI Telemetry & `Schaltwerk` Workflow
 

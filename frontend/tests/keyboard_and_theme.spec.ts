@@ -1,5 +1,5 @@
 /**
- * Behavioural tests for the keyboard shortcut registry (`Ctrl+K`, `:`, `?`, `c`, `p`, `o`, `f`),
+ * Behavioural tests for the keyboard shortcut registry (`Ctrl+K`, `:`, `?`, `c`, `p`, `o`, `f`, `s`),
  * editable/IME suppression, native `<dialog closedby="any">` pointer-coordinate light-dismiss
  * fallback, and OS-aware `color-scheme` dark-mode toggle.
  */
@@ -12,7 +12,7 @@ import {
 } from '../src/composables/useNativeDialog';
 
 describe('Keyboard shortcut registry and native dialog light-dismiss fallback', () => {
-  it('routes Ctrl+K, :, ?, and single-key chords c, p, o, f while suppressing editable targets and IME composition', () => {
+  it('routes Ctrl+K, :, ?, and single-key chords c, p, o, f, s while suppressing editable targets and IME composition', () => {
     const onNavigate = vi.fn();
     const onOpenCommandPalette = vi.fn();
     const onOpenShortcutHelp = vi.fn();
@@ -44,15 +44,18 @@ describe('Keyboard shortcut registry and native dialog light-dismiss fallback', 
     handler(new KeyboardEvent('keydown', { key: 'f' }));
     expect(onNavigate).toHaveBeenLastCalledWith('now');
 
+    handler(new KeyboardEvent('keydown', { key: 's' }));
+    expect(onNavigate).toHaveBeenLastCalledWith('reconcile');
+
     const inputEl = document.createElement('input');
-    const inputEvent = new KeyboardEvent('keydown', { key: 'c' });
+    const inputEvent = new KeyboardEvent('keydown', { key: 's' });
     Object.defineProperty(inputEvent, 'target', { value: inputEl });
     handler(inputEvent);
-    expect(onNavigate).toHaveBeenCalledTimes(4);
+    expect(onNavigate).toHaveBeenCalledTimes(5);
 
     const imeEvent = new KeyboardEvent('keydown', { key: 'p', isComposing: true });
     handler(imeEvent);
-    expect(onNavigate).toHaveBeenCalledTimes(4);
+    expect(onNavigate).toHaveBeenCalledTimes(5);
   });
 
   it('implements pointer-coordinate light-dismiss fallback for <dialog closedby="any"> and resets returnValue', () => {

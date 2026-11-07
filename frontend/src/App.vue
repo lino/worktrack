@@ -9,8 +9,10 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import AgendaFocusView from './components/AgendaFocusView.vue';
 import CaptureAttributionView from './components/CaptureAttributionView.vue';
+import ExportsHubView from './components/ExportsHubView.vue';
 import NowInsightsView from './components/NowInsightsView.vue';
 import OutboxLedgerView from './components/OutboxLedgerView.vue';
+import ReconcilerCluesView from './components/ReconcilerCluesView.vue';
 import {
   type ColorSchemeState,
   getStoredColorScheme,
@@ -58,14 +60,46 @@ function openShortcutHelp(): void {
   openNativeModalDialog(helpDialogRef.value);
 }
 
+const VALID_VIEW_IDS = new Set<CockpitViewId>([
+  'now',
+  'agenda',
+  'capture',
+  'outbox',
+  'reconcile',
+  'exports',
+]);
+
+const COMMAND_PALETTE_MATCHERS: ReadonlyArray<readonly [readonly string[], CockpitViewId]> = [
+  [['outbox', 'o'], 'outbox'],
+  [['agenda', 'plan', 'p'], 'agenda'],
+  [['capture', 'interval', 'c'], 'capture'],
+  [['reconcile', 'clue', 's'], 'reconcile'],
+  [['export', 'tax'], 'exports'],
+];
+
+/**
+ * Resolve a free-text Command Palette query to a target `CockpitViewId`.
+ * @param rawQuery Raw search input string.
+ * @returns Matched cockpit view identifier.
+ */
+function resolveCommandPaletteTarget(rawQuery: string): CockpitViewId {
+  const q = rawQuery.trim().toLowerCase();
+  for (const [tokens, viewId] of COMMAND_PALETTE_MATCHERS) {
+    if (tokens.some((token) => (token.length === 1 ? q === token : q.includes(token)))) {
+      return viewId;
+    }
+  }
+  return 'now';
+}
+
 /**
  * Handle native `<dialog>` `close` events, consuming and resetting `dialog.returnValue`.
  * @param event Native dialog close event.
  */
 function handleCommandDialogClose(event: Event): void {
   const dialog = event.currentTarget as HTMLDialogElement | null;
-  const action = resetDialogReturnValue(dialog);
-  if (action === 'now' || action === 'agenda' || action === 'capture' || action === 'outbox') {
+  const action = resetDialogReturnValue(dialog) as CockpitViewId;
+  if (VALID_VIEW_IDS.has(action)) {
     activeView.value = action;
   }
 }
@@ -82,16 +116,7 @@ function handleHelpDialogClose(event: Event): void {
  * Execute a command from the Command Palette form and close the native modal.
  */
 function executeCommandPaletteSearch(): void {
-  const q = commandSearchQuery.value.trim().toLowerCase();
-  if (q.includes('outbox') || q === 'o') {
-    activeView.value = 'outbox';
-  } else if (q.includes('agenda') || q.includes('plan') || q === 'p') {
-    activeView.value = 'agenda';
-  } else if (q.includes('capture') || q.includes('interval') || q === 'c') {
-    activeView.value = 'capture';
-  } else {
-    activeView.value = 'now';
-  }
+  activeView.value = resolveCommandPaletteTarget(commandSearchQuery.value);
   commandSearchQuery.value = '';
   commandDialogRef.value?.close();
 }
@@ -187,6 +212,26 @@ onBeforeUnmount(() => {
               Outbox Diff &amp; EgressLedger (o)
             </button>
           </li>
+          <li>
+            <button
+              type="button"
+              data-testid="nav-reconcile"
+              :aria-current="activeView === 'reconcile' ? 'page' : undefined"
+              @click="selectView('reconcile')"
+            >
+              Reconciler &amp; Clues (s)
+            </button>
+          </li>
+          <li>
+            <button
+              type="button"
+              data-testid="nav-exports"
+              :aria-current="activeView === 'exports' ? 'page' : undefined"
+              @click="selectView('exports')"
+            >
+              Tax &amp; Attribution Exports
+            </button>
+          </li>
         </ul>
       </nav>
     </header>
@@ -195,6 +240,8 @@ onBeforeUnmount(() => {
       <NowInsightsView v-if="activeView === 'now'" />
       <AgendaFocusView v-else-if="activeView === 'agenda'" />
       <CaptureAttributionView v-else-if="activeView === 'capture'" />
+      <ReconcilerCluesView v-else-if="activeView === 'reconcile'" />
+      <ExportsHubView v-else-if="activeView === 'exports'" />
       <OutboxLedgerView v-else />
     </main>
 
@@ -210,7 +257,7 @@ onBeforeUnmount(() => {
         <div class="form-group">
           <label for="command-palette-input">Jump to view or execute command:</label>
           <span id="command-palette-hint" class="field-hint">
-            Type `now`, `agenda`, `capture`, or `outbox` and press Enter.
+            Type `now`, `agenda`, `capture`, `outbox`, `reconcile`, or `export` and press Enter.
           </span>
           <input
             id="command-palette-input"
@@ -246,6 +293,7 @@ onBeforeUnmount(() => {
         <li><kbd>p</kbd> — Switch to Today / Week Agenda &amp; FocusBlocks View</li>
         <li><kbd>c</kbd> — Switch to Chaotic Interval &amp; Attribution Editor</li>
         <li><kbd>o</kbd> — Switch to Outbox Diff Preview &amp; EgressLedger</li>
+        <li><kbd>s</kbd> — Switch to Reconciler, Clues &amp; Workplace Sensors</li>
       </ul>
       <form method="dialog">
         <button value="close" autofocus>Close Shortcuts</button>

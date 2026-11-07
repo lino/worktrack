@@ -27,10 +27,22 @@ export const API_ROUTES = {
   insightsNow: '/api/v1/insights/now/',
   insightsToday: '/api/v1/insights/today/',
   insightsWeek: '/api/v1/insights/week/',
+  clues: '/api/v1/clues/',
+  cluesGitSync: '/api/v1/clues/git-sync/',
+  sensorsEvaluate: '/api/v1/sensors/evaluate/',
+  reconcilerInspect: '/api/v1/reconciler/inspect/',
+  reconcilerPropose: '/api/v1/reconciler/propose/',
+  reconcilerApply: '/api/v1/reconciler/apply/',
+  calendarSync: '/api/v1/calendar/sync/',
+  calendarStageFocus: '/api/v1/calendar/stage-focus/',
+  hubRollups: '/api/v1/hub/rollups/',
+  hubCatalog: '/api/v1/hub/catalog/',
+  exportsWorkplaceTax: '/api/v1/exports/workplace-tax/',
+  exportsEntityAttribution: '/api/v1/exports/entity-attribution/',
 } as const;
 
 /** Cockpit navigation view identifiers. */
-export type CockpitViewId = 'now' | 'agenda' | 'capture' | 'outbox';
+export type CockpitViewId = 'now' | 'agenda' | 'capture' | 'outbox' | 'reconcile' | 'exports';
 
 /** Single-key and chord bindings for the keyboard-first cockpit. */
 export const KEYBOARD_SHORTCUTS = {
@@ -41,6 +53,7 @@ export const KEYBOARD_SHORTCUTS = {
   viewAgenda: 'p',
   viewCapture: 'c',
   viewOutbox: 'o',
+  viewReconcile: 's',
 } as const;
 
 /** LocalStorage and `<meta name="color-scheme">` constants. */

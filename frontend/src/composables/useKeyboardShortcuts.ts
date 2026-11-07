@@ -1,6 +1,6 @@
 /**
  * Global keyboard shortcut registry for the Worktrack cockpit (`Ctrl+K`, `:`, `?`,
- * and single-key chords `c`, `p`, `o`, `f`) with editable-control and IME suppression.
+ * and single-key chords `c`, `p`, `o`, `f`, `s`) with editable-control and IME suppression.
  */
 import { type CockpitViewId, KEYBOARD_SHORTCUTS } from '../config/constants';
 
@@ -18,6 +18,7 @@ const SINGLE_KEY_VIEW_MAP: Readonly<Record<string, CockpitViewId>> = {
   [KEYBOARD_SHORTCUTS.viewAgenda]: 'agenda',
   [KEYBOARD_SHORTCUTS.viewOutbox]: 'outbox',
   [KEYBOARD_SHORTCUTS.viewNow]: 'now',
+  [KEYBOARD_SHORTCUTS.viewReconcile]: 'reconcile',
 };
 
 /**

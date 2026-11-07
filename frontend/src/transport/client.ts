@@ -7,12 +7,23 @@ import type {
   ActivitySchema,
   AgendaItemSchema,
   AttributionSchema,
+  ClueListSchema,
+  ClueSchema,
+  ClueSyncResultSchema,
   ContextFactSchema,
   EgressRecordSchema,
+  EntityAttributionExportResponseSchema,
   EntitySchema,
   FocusBlockSchema,
   IntervalSchema,
   OutboxItemSchema,
+  ReconcilerProposeRequestSchema,
+  ReconcilerProposeResponseSchema,
+  RetroSplitApplyResultSchema,
+  RetroSplitProposalSchema,
+  SensorEvaluateRequestSchema,
+  SensorEvaluationResultSchema,
+  WorkplaceTaxExportResponseSchema,
 } from '../api/generated';
 import {
   API_ROUTES,
@@ -24,12 +35,16 @@ import {
   ActivityModel,
   AgendaItemModel,
   AttributionModel,
+  ClueModel,
   ContextFactModel,
   EgressReceiptModel,
   EntityModel,
+  ExportReportModel,
   FocusBlockModel,
   IntervalModel,
   OutboxItemModel,
+  ReconcileProposalModel,
+  SensorSuggestionModel,
 } from '../models';
 
 /** Bounded frontend API transport telemetry snapshot. */
@@ -107,10 +122,11 @@ export class WorktrackTransportClient {
    * Perform a JSON HTTP request against a canonical route and record bounded telemetry.
    * @param route Canonical route path (used as bounded metric key).
    * @param init Optional `RequestInit` overrides.
+   * @param queryString Optional query string appended to `route` without expanding metric keys.
    * @returns Parsed JSON response payload.
    */
-  async requestJson<T>(route: string, init: RequestInit = {}): Promise<T> {
-    const url = `${this.baseUrl}${route}`;
+  async requestJson<T>(route: string, init: RequestInit = {}, queryString = ''): Promise<T> {
+    const url = `${this.baseUrl}${route}${queryString}`;
     let response: Response;
     try {
       response = await this.fetchImpl(url, {
@@ -234,5 +250,135 @@ export class WorktrackTransportClient {
     const items = await this.requestJson<EgressRecordSchema[]>(API_ROUTES.egressLedger);
     useRepo(EgressReceiptModel).save(items);
     return items;
+  }
+
+  /**
+   * Fetch `/api/v1/clues/` and normalize into `ClueModel`.
+   */
+  async fetchClues(): Promise<ClueSchema[]> {
+    const envelope = await this.requestJson<ClueListSchema | ClueSchema[]>(API_ROUTES.clues);
+    const clues = Array.isArray(envelope) ? envelope : envelope.clues;
+    useRepo(ClueModel).save(clues);
+    return clues;
+  }
+
+  /**
+   * Synchronize Git clues via `POST /api/v1/clues/git-sync/` and normalize into `ClueModel`.
+   * @param payload Optional repository path, time window, or direct clue items.
+   */
+  async syncGitClues(payload: Record<string, unknown> = {}): Promise<ClueSyncResultSchema> {
+    const result = await this.requestJson<ClueSyncResultSchema>(API_ROUTES.cluesGitSync, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    useRepo(ClueModel).save(result.clues);
+    return result;
+  }
+
+  /**
+   * Evaluate local `workplace` sensor rules via `POST /api/v1/sensors/evaluate/`.
+   * @param payload Optional scope date, apply flag, or inline rules/snapshot.
+   */
+  async evaluateSensors(
+    payload: SensorEvaluateRequestSchema = {},
+  ): Promise<SensorEvaluationResultSchema> {
+    const result = await this.requestJson<SensorEvaluationResultSchema>(
+      API_ROUTES.sensorsEvaluate,
+      {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      },
+    );
+    if (result.suggestion) {
+      useRepo(SensorSuggestionModel).save(result.suggestion);
+    }
+    return result;
+  }
+
+  /**
+   * Propose a duration-conserving `RetroSplit` via `POST /api/v1/reconciler/propose/`.
+   * @param payload Target interval, activity list, and split strategy.
+   */
+  async proposeRetroSplit(
+    payload: ReconcilerProposeRequestSchema,
+  ): Promise<RetroSplitProposalSchema> {
+    const response = await this.requestJson<ReconcilerProposeResponseSchema>(
+      API_ROUTES.reconcilerPropose,
+      {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      },
+    );
+    useRepo(ReconcileProposalModel).save(response.proposal);
+    return response.proposal;
+  }
+
+  /**
+   * Apply a `RetroSplit` via `POST /api/v1/reconciler/apply/` and normalize split `Intervals`.
+   * @param payload Target interval, activity list, and split strategy.
+   */
+  async applyRetroSplit(
+    payload: ReconcilerProposeRequestSchema,
+  ): Promise<RetroSplitApplyResultSchema> {
+    const result = await this.requestJson<RetroSplitApplyResultSchema>(API_ROUTES.reconcilerApply, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    useRepo(IntervalModel).save(result.intervals);
+    return result;
+  }
+
+  /**
+   * Fetch `/api/v1/exports/workplace-tax/` and normalize into `ExportReportModel`.
+   * @param year Four-digit calendar year.
+   * @param format Target export format (`csv`, `json`, or `markdown`).
+   */
+  async fetchWorkplaceTaxExport(
+    year: number,
+    format: 'csv' | 'json' | 'markdown' = 'markdown',
+  ): Promise<WorkplaceTaxExportResponseSchema> {
+    const query = `?year=${encodeURIComponent(String(year))}&format=${encodeURIComponent(format)}`;
+    const result = await this.requestJson<WorkplaceTaxExportResponseSchema>(
+      API_ROUTES.exportsWorkplaceTax,
+      {},
+      query,
+    );
+    useRepo(ExportReportModel).save({
+      id: `workplace-tax:${year}:${format}`,
+      kind: 'workplace-tax',
+      format,
+      rendered: result.rendered,
+      report: result.report as unknown as Record<string, unknown>,
+      updated_at: new Date().toISOString(),
+    });
+    return result;
+  }
+
+  /**
+   * Fetch `/api/v1/exports/entity-attribution/` and normalize into `ExportReportModel`.
+   * @param start Window start ISO-8601 timestamp.
+   * @param end Window end ISO-8601 timestamp.
+   * @param format Target export format (`csv`, `json`, or `markdown`).
+   */
+  async fetchEntityAttributionExport(
+    start: string,
+    end: string,
+    format: 'csv' | 'json' | 'markdown' = 'markdown',
+  ): Promise<EntityAttributionExportResponseSchema> {
+    const query = `?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}&format=${encodeURIComponent(format)}`;
+    const result = await this.requestJson<EntityAttributionExportResponseSchema>(
+      API_ROUTES.exportsEntityAttribution,
+      {},
+      query,
+    );
+    useRepo(ExportReportModel).save({
+      id: `entity-attribution:${start}:${end}:${format}`,
+      kind: 'entity-attribution',
+      format,
+      rendered: result.rendered,
+      report: result.report as unknown as Record<string, unknown>,
+      updated_at: new Date().toISOString(),
+    });
+    return result;
   }
 }

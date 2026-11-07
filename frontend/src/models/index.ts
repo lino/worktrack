@@ -14,4 +14,10 @@ export {
   FocusBlockModel,
   OutboxItemModel,
 } from './planning_and_outbox';
+export {
+  ClueModel,
+  ExportReportModel,
+  ReconcileProposalModel,
+  SensorSuggestionModel,
+} from './reconciler_and_exports';
 export { seedCockpitDemoState } from './seed';
