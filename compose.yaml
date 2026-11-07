@@ -1,0 +1,23 @@
+services:
+  worktrack:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: worktrack:local
+    restart: unless-stopped
+    ports:
+      - "${WORKTRACK_BIND_HOST:-127.0.0.1}:${WORKTRACK_METRICS_PORT:-9112}:${WORKTRACK_METRICS_PORT:-9112}"
+    environment:
+      WORKTRACK_MODE: "${WORKTRACK_MODE:-node}"
+      WORKTRACK_LOG_LEVEL: "${WORKTRACK_LOG_LEVEL:-INFO}"
+      WORKTRACK_METRICS_HOST: "0.0.0.0"
+      WORKTRACK_METRICS_PORT: "${WORKTRACK_METRICS_PORT:-9112}"
+      XDG_CONFIG_HOME: "/var/lib/worktrack/config"
+      XDG_DATA_HOME: "/var/lib/worktrack/data"
+      XDG_STATE_HOME: "/var/lib/worktrack/state"
+      XDG_RUNTIME_DIR: "/var/lib/worktrack/run"
+    volumes:
+      - worktrack-state:/var/lib/worktrack
+
+volumes:
+  worktrack-state:

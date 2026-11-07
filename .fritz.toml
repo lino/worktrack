@@ -1,0 +1,65 @@
+# F.R.I.T.Z. workspace configuration for `worktrack` (`wt`).
+# Machine-specific paths MUST NOT be stored here; use `$BABELSBERG_HUB` or `.fritz.local.toml`.
+
+[workspace]
+mode = "hub"
+project = "worktrack"
+backend = "metrorg"
+hub_env_var = "BABELSBERG_HUB"
+local_plan_dir = ".plan"
+metrorg_bin_env_var = "METRORG_BIN"
+default_metrorg_bin = "org"
+
+[rulesets]
+active = [
+    "local:baseline/core-craft@1.0.0",
+    "local:baseline/docker-zensical@1.0.0",
+    "local:stack/python-service@1.0.0",
+    "local:stack/django-drf-vue@1.0.0",
+]
+sources_file = "rulesets/sources.toml"
+lock_file = "rulesets/rulesets.lock.json"
+
+[rulesets.components]
+core-cli-and-daemon = [
+    "local:baseline/core-craft@1.0.0",
+    "local:stack/python-service@1.0.0",
+]
+web-backend-and-broker = [
+    "local:baseline/core-craft@1.0.0",
+    "local:stack/python-service@1.0.0",
+    "local:stack/django-drf-vue@1.0.0",
+]
+web-cockpit-frontend = [
+    "local:baseline/core-craft@1.0.0",
+    "local:stack/django-drf-vue@1.0.0",
+]
+
+[models]
+default_level = "L2"
+allowed_families = ["gemini", "claude", "gpt", "gpt-oss", "local"]
+inference_providers = ["google-direct", "anthropic-direct", "openai-direct", "ollama", "vllm"]
+qa_diverse_family = true
+qa_diverse_lineage = true
+
+[models.family_defaults]
+L1 = "gemini"
+L2 = "gemini"
+L3 = "claude"
+L4 = "claude"
+L5 = "gemini"
+
+[hygiene]
+max_file_lines = 450
+max_function_lines = 50
+max_cyclomatic_complexity = 10
+regions_section_threshold = 3
+regions_registry_file = ".regions.md"
+
+[observability]
+namespace = "worktrack"
+telemetry_dir = ".cache/telemetry"
+metrics_host = "127.0.0.1"
+metrics_port = 9112
+max_label_values = 20
+max_series_per_metric = 500

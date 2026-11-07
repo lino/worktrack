@@ -1,0 +1,27 @@
+# Local workstation overrides & F.R.I.T.Z. caches
+mise.local.toml
+.fritz.local.toml
+.regions.md
+.cache/
+
+# Python & uv
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+dist/
+build/
+*.egg-info/
+
+# Frontend & Zensical
+node_modules/
+frontend/dist/
+site/
+
+# Local SQLite & OS artifacts
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+.DS_Store

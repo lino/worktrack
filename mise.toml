@@ -1,0 +1,44 @@
+# mise meta-toolchain & lifecycle configuration for `worktrack` (`wt`)
+# Machine-local overrides belong in git-ignored `mise.local.toml`.
+
+[tools]
+python = "3.13"
+uv = "latest"
+node = "22"
+pnpm = "latest"
+
+[tasks.setup]
+description = "Install locked Python and frontend dependencies and init local telemetry cache"
+run = "mkdir -p .cache/telemetry && uv sync --dev"
+
+[tasks.fmt]
+description = "Check Python formatting, Org/Markdown tables, and Mermaid diagrams"
+run = "fritz fmt --check"
+
+[tasks.lint]
+description = "Enforce Google style, docstrings, strict static types, and AST craft hygiene"
+run = "uv run ruff check . && uv run mypy --strict src tests && fritz validate"
+
+[tasks.test]
+description = "Execute automated behavioural pytest and frontend vitest suites"
+run = "uv run pytest"
+
+[tasks.verify]
+description = "Run combined lint, typing, and behavioural test verification gates"
+run = "mise run lint && mise run test"
+
+[tasks.docs]
+description = "Build Zensical User and Operations documentation in strict mode"
+run = "uvx zensical build --strict"
+
+[tasks.bench]
+description = "Run latency benchmarks against BENCH-SPEC-WT budgets"
+run = "uv run pytest -k bench"
+
+[tasks.metrics]
+description = "Render Prometheus OpenMetrics exposition"
+run = "WORKTRACK_TELEMETRY_DIR=.cache/telemetry uv run python -m worktrack.telemetry && fritz metrics"
+
+[tasks.openapi-sync]
+description = "Export drf-spectacular OpenAPI schema and generate @hey-api/openapi-ts + pinia-orm client"
+run = "uv run python -m worktrack.web.schema_export && pnpm -C frontend run openapi-sync"
