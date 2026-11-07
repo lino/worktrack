@@ -184,7 +184,7 @@ def test_ledger_ipc_provider_closes_sqlite_connections_per_rpc(
     provider = LedgerIpcServiceProvider(db_path)
 
     gc.collect()
-    baseline_conns = sum(1 for obj in gc.get_objects() if isinstance(obj, sqlite3.Connection))
+    baseline_conns = sum(1 for obj in gc.get_objects() if type(obj) is sqlite3.Connection)
 
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always", ResourceWarning)
@@ -196,7 +196,7 @@ def test_ledger_ipc_provider_closes_sqlite_connections_per_rpc(
         gc.collect()
 
     resource_warnings = [w for w in caught if issubclass(w.category, ResourceWarning)]
-    after_conns = sum(1 for obj in gc.get_objects() if isinstance(obj, sqlite3.Connection))
+    after_conns = sum(1 for obj in gc.get_objects() if type(obj) is sqlite3.Connection)
     assert resource_warnings == []
     assert after_conns <= baseline_conns
 

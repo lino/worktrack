@@ -10,8 +10,14 @@ requires-python = ">=3.13"
 license = { text = "MIT" }
 authors = [{ name = "Worktrack Contributors" }]
 dependencies = [
+    "django>=5.1,<6.0",
+    "djangorestframework>=3.15.0",
+    "drf-spectacular>=0.28.0",
     "prometheus-client>=0.21.0",
 ]
+
+[project.scripts]
+wt = "worktrack.cli:main"
 
 [project.optional-dependencies]
 aws = [
@@ -23,6 +29,7 @@ dev = [
     "mypy>=1.13.0",
     "pytest>=8.3.0",
     "pytest-benchmark>=5.1.0",
+    "pytest-django>=4.9.0",
     "ruff>=0.8.0",
 ]
 
@@ -66,6 +73,14 @@ strict = true
 mypy_path = "src"
 warn_unreachable = true
 pretty = true
+
+[[tool.mypy.overrides]]
+module = [
+    "django.*",
+    "rest_framework.*",
+    "drf_spectacular.*",
+]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

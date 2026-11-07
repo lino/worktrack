@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import dataclasses
 import sqlite3
 from datetime import UTC, datetime, timedelta
@@ -146,7 +147,7 @@ def test_sqlite_outbox_schema_migrations_coexist_with_core_ledger(tmp_path: Path
         assert len(ledger.applied_migrations()) == 1
         assert len(store.applied_migrations()) == 1
 
-    with sqlite3.connect(settings.db_path) as raw_conn:
+    with contextlib.closing(sqlite3.connect(settings.db_path)) as raw_conn:
         tables = {
             str(row[0])
             for row in raw_conn.execute(
@@ -243,7 +244,7 @@ def _assert_egress_metrics_and_immutability(db_path: Path, telemetry: TelemetryR
             in metrics_text
         )
 
-    with sqlite3.connect(db_path) as raw_conn:
+    with contextlib.closing(sqlite3.connect(db_path)) as raw_conn:
         with pytest.raises(sqlite3.IntegrityError, match="append-only"):
             raw_conn.execute("UPDATE egress_ledger SET outcome = 'error'")
         with pytest.raises(sqlite3.IntegrityError, match="append-only"):

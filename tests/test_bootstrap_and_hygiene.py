@@ -346,7 +346,10 @@ def test_metrics_http_server_exposes_metrics_and_healthz(tmp_path: Path) -> None
 
         with pytest.raises(urllib.error.HTTPError) as exc_info:
             urllib.request.urlopen(f"{server.base_url}/unknown")
-        assert exc_info.value.code == HTTP_NOT_FOUND_STATUS
+        try:
+            assert exc_info.value.code == HTTP_NOT_FOUND_STATUS
+        finally:
+            exc_info.value.close()
 
 
 # endregion
