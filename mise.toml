@@ -9,7 +9,7 @@ pnpm = "latest"
 
 [tasks.setup]
 description = "Install locked Python and frontend dependencies and init local telemetry cache"
-run = "mkdir -p .cache/telemetry && uv sync --dev"
+run = "mkdir -p .cache/telemetry && uv sync --dev && pnpm -C frontend install --frozen-lockfile"
 
 [tasks.fmt]
 description = "Check Python formatting, Org/Markdown tables, and Mermaid diagrams"
@@ -17,11 +17,11 @@ run = "fritz fmt --check"
 
 [tasks.lint]
 description = "Enforce Google style, docstrings, strict static types, and AST craft hygiene"
-run = "uv run ruff check . && uv run mypy --strict src tests && fritz validate"
+run = "uv run ruff check . && uv run mypy --strict src tests && pnpm -C frontend run lint && pnpm -C frontend run typecheck && fritz validate"
 
 [tasks.test]
 description = "Execute automated behavioural pytest and frontend vitest suites"
-run = "uv run pytest"
+run = "uv run pytest && pnpm -C frontend run test"
 
 [tasks.verify]
 description = "Run combined lint, typing, and behavioural test verification gates"

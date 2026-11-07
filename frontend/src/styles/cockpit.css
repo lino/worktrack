@@ -1,0 +1,223 @@
+/* Worktrack (wt) Modern Web CSS — color-scheme, native <dialog>, and @container responsive tables */
+
+:root {
+  --color-surface-light: #f8fafc;
+  --color-surface-dark: #0f172a;
+  --color-card-light: #ffffff;
+  --color-card-dark: #1e293b;
+  --color-text-light: #0f172a;
+  --color-text-dark: #f1f5f9;
+  --color-border-light: #cbd5e1;
+  --color-border-dark: #334155;
+  --color-brand-light: #0b57d0;
+  --color-brand-dark: #60a5fa;
+
+  --color-surface: var(--color-surface-light);
+  --color-card: var(--color-card-light);
+  --color-text: var(--color-text-light);
+  --color-border: var(--color-border-light);
+  --color-brand: var(--color-brand-light);
+
+  @media (prefers-color-scheme: dark) {
+    --color-surface: var(--color-surface-dark);
+    --color-card: var(--color-card-dark);
+    --color-text: var(--color-text-dark);
+    --color-border: var(--color-border-dark);
+    --color-brand: var(--color-brand-dark);
+  }
+
+  @supports (color: light-dark(white, black)) {
+    --color-surface: light-dark(var(--color-surface-light), var(--color-surface-dark));
+    --color-card: light-dark(var(--color-card-light), var(--color-card-dark));
+    --color-text: light-dark(var(--color-text-light), var(--color-text-dark));
+    --color-border: light-dark(var(--color-border-light), var(--color-border-dark));
+    --color-brand: light-dark(var(--color-brand-light), var(--color-brand-dark));
+  }
+
+  color-scheme: light dark;
+  accent-color: var(--color-brand);
+
+  &:has(> head > meta[name="color-scheme"][content="dark"]) {
+    color-scheme: dark;
+  }
+
+  &:has(> head > meta[name="color-scheme"][content="light"]) {
+    color-scheme: light;
+  }
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  line-height: 1.5;
+}
+
+.visually-hidden:where(:not(:focus-within, :active)) {
+  position: absolute !important;
+  clip-path: inset(50%) !important;
+  overflow: hidden !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  white-space: nowrap !important;
+}
+
+.skip-link:focus-visible {
+  position: fixed;
+  inset-block-start: 0.5rem;
+  inset-inline-start: 0.5rem;
+  z-index: 100;
+  padding: 0.5rem 1rem;
+  background: var(--color-card);
+  color: var(--color-text);
+  border: 2px solid var(--color-brand);
+}
+
+:where(a:any-link, button, input, select, textarea, [tabindex="0"]):focus-visible {
+  outline: 3px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+dialog:modal {
+  overscroll-behavior: contain;
+  background: var(--color-card);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  padding: 1.25rem;
+  max-inline-size: min(36rem, 92vw);
+}
+
+dialog::backdrop {
+  overflow: hidden;
+  overscroll-behavior: contain;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+}
+
+.table-wrapper {
+  overflow: auto;
+  max-inline-size: 100%;
+  max-block-size: min(500px, 80vh);
+  container-type: inline-size;
+  margin-block: 1rem;
+  border: 1px solid var(--color-border);
+}
+
+.responsive-data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  --label-1: "Primary Key";
+  --label-2: "Target / Scope";
+  --label-3: "Metric / Mode";
+  --label-4: "Summary / Detail";
+  --label-5: "Status / Action";
+}
+
+.responsive-data-table th,
+.responsive-data-table td {
+  padding: 0.625rem 0.75rem;
+  border-block-end: 1px solid var(--color-border);
+  text-align: start;
+}
+
+.responsive-data-table thead {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 1;
+  background: var(--color-card);
+}
+
+.responsive-data-table tbody th {
+  position: sticky;
+  inset-inline-start: 0;
+  background: var(--color-card);
+}
+
+@container (width < 600px) {
+  .responsive-data-table,
+  .responsive-data-table thead,
+  .responsive-data-table tbody,
+  .responsive-data-table tr,
+  .responsive-data-table th,
+  .responsive-data-table td {
+    display: block;
+  }
+
+  .responsive-data-table thead {
+    display: none;
+  }
+
+  .responsive-data-table tr {
+    margin-block-end: 1.25rem;
+    border: 1px solid var(--color-border);
+  }
+
+  .responsive-data-table tbody th {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 2;
+    background: var(--color-surface);
+  }
+
+  .responsive-data-table td:nth-child(2)::before {
+    content: var(--label-2) ": ";
+    font-weight: 600;
+  }
+
+  .responsive-data-table td:nth-child(3)::before {
+    content: var(--label-3) ": ";
+    font-weight: 600;
+  }
+
+  .responsive-data-table td:nth-child(4)::before {
+    content: var(--label-4) ": ";
+    font-weight: 600;
+  }
+
+  .responsive-data-table td:nth-child(5)::before {
+    content: var(--label-5) ": ";
+    font-weight: 600;
+  }
+}
+
+.cockpit-header,
+.cockpit-main {
+  max-inline-size: 76rem;
+  margin-inline: auto;
+  padding: 1rem 1.25rem;
+}
+
+.cockpit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: 1rem;
+}
+
+.cockpit-card {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.form-group {
+  margin-block-end: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+input,
+textarea,
+button {
+  font-size: 1rem;
+  min-block-size: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  box-sizing: border-box;
+}

@@ -1,0 +1,31 @@
+{
+  "name": "@worktrack/cockpit-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Keyboard-first Vue 3 + Vuetify + openapi-ts + pinia-orm cockpit for Worktrack (wt).",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "typecheck": "vue-tsc --noEmit",
+    "lint": "node scripts/check_hygiene.mjs",
+    "test": "vitest run",
+    "openapi-sync": "openapi-ts -f openapi-ts.config.ts && node scripts/post_openapi_sync.mjs"
+  },
+  "dependencies": {
+    "pinia": "^2.3.1",
+    "pinia-orm": "^1.9.1",
+    "vue": "^3.5.13",
+    "vuetify": "^3.7.15"
+  },
+  "devDependencies": {
+    "@hey-api/openapi-ts": "^0.66.0",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "@vue/test-utils": "^2.4.6",
+    "jsdom": "^26.0.0",
+    "typescript": "~5.7.3",
+    "vite": "^6.2.0",
+    "vitest": "^3.0.7",
+    "vue-tsc": "^2.2.4"
+  }
+}

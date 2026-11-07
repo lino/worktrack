@@ -1,0 +1,78 @@
+# Prometheus alerting rules for Worktrack (`wt` / `Uhrenmaschine`)
+# Every alert links to its canonical section in `docs/operations/runbook.md`.
+
+groups:
+  - name: worktrack.uhrenmaschine.rules
+    interval: 30s
+    rules:
+      - alert: WorktrackIpcLatencyHigh
+        expr: histogram_quantile(0.95, sum by (le, method) (rate(worktrack_ipc_request_duration_seconds_bucket[5m]))) > 0.010
+        for: 5m
+        labels:
+          severity: warning
+          service: worktrack
+          kpi: KPI-WT-IPC-LAT
+        annotations:
+          summary: "Worktrack IPC status round-trip p95 latency exceeds 10ms budget"
+          description: "Warm IPC p95 latency on worktrackd exceeded 0.010s over 5m, risking shell prompt lag."
+          runbook_url: "https://worktrack.example.invalid/operations/runbook/#worktrackipclatencyhigh"
+
+      - alert: WorktrackRollupLatencyHigh
+        expr: histogram_quantile(0.95, sum by (le, cadence) (rate(worktrack_rollup_compute_duration_seconds_bucket[5m]))) > 0.050
+        for: 5m
+        labels:
+          severity: warning
+          service: worktrack
+          kpi: KPI-WT-ROLLUP-LAT
+        annotations:
+          summary: "Worktrack Outbox Rollup preview p95 computation exceeds 50ms budget"
+          description: "Local Rollup preview computation p95 exceeded 0.050s over 5m."
+          runbook_url: "https://worktrack.example.invalid/operations/runbook/#worktrackrolluplatencyhigh"
+
+      - alert: WorktrackOutboxFlushFailure
+        expr: sum by (sink, cadence) (increase(worktrack_outbox_flushes_total{outcome="error"}[15m])) > 0
+        for: 2m
+        labels:
+          severity: warning
+          service: worktrack
+          kpi: KPI-WT-OUTBOX-FLUSH
+        annotations:
+          summary: "Worktrack Outbox Sink delivery recorded one or more flush errors"
+          description: "Approved Outbox proposal failed during Sink delivery; inspect EgressLedger and events.jsonl by FRITZ_TRACE_ID."
+          runbook_url: "https://worktrack.example.invalid/operations/runbook/#worktrackoutboxflushfailure"
+
+      - alert: WorktrackEgressBypassDetected
+        expr: sum by (sink, source) (increase(worktrack_egress_bypass_blocked_total[5m])) > 0
+        for: 0m
+        labels:
+          severity: critical
+          service: worktrack
+          kpi: KPI-WT-UNPREVIEWED
+        annotations:
+          summary: "Unpreviewed external Sink write attempt blocked by Outbox gate"
+          description: "A Sink connector attempted outbound egress without a sealed ApprovedOutboxGrant token."
+          runbook_url: "https://worktrack.example.invalid/operations/runbook/#worktrackegressbypassdetected"
+
+      - alert: WorktrackSecretResolutionFailure
+        expr: sum by (scheme) (increase(worktrack_secret_provider_resolves_total{outcome="error"}[5m])) > 0
+        for: 1m
+        labels:
+          severity: critical
+          service: worktrack
+          kpi: KPI-WT-SECRET-RESOLVE
+        annotations:
+          summary: "SecretProvider failed to resolve confidential secret URI"
+          description: "Resolution failed for an env://, file://, keyring://, or aws-sm:// secret URI."
+          runbook_url: "https://worktrack.example.invalid/operations/runbook/#worktracksecretresolutionfailure"
+
+      - alert: WorktrackOAuthBrokerFailure
+        expr: sum by (provider, grant) (increase(worktrack_oauth_broker_requests_total{outcome="error"}[5m])) > 0
+        for: 2m
+        labels:
+          severity: warning
+          service: worktrack
+          kpi: KPI-WT-BROKER-EXCH
+        annotations:
+          summary: "Stateless OAuth Confidential Broker exchange or refresh failed"
+          description: "Stateless OAuth 2.0 PKCE exchange or refresh failed; verify upstream provider status and client_secret rotation."
+          runbook_url: "https://worktrack.example.invalid/operations/runbook/#worktrackoauthbrokerfailure"
