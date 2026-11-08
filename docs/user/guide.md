@@ -89,7 +89,7 @@ All `wt` subcommands support human-readable terminal output by default and `--js
 | `wt entity`    | `wt entity add customer BABELSBERG --name "Studio Babelsberg"`                   | Register a non-strict `Entity` node (`project`, `customer`, `component`).        |
 | `wt attr`      | `wt attr add --activity PROJ-142 --target customer:babelsberg --weight 1`        | Connect an `Activity` or `Entity` to a target `Entity` with a DAG weight.        |
 | `wt outbox`    | `wt outbox preview --stage` / `wt outbox approve <id>` / `wt outbox flush`       | Preview `Rollup` diffs, approve/reject staged items, or flush to `Sinks`.        |
-| `wt jira`      | `wt jira sync-issues --jql "assignee = currentUser()"`                           | Import Jira Cloud v3 issues into assignable `Activities` and `Entities`.         |
+| `wt jira`      | `wt jira login` / `wt jira status` / `wt jira sync --jql "..."`                  | Log in to Jira Cloud (OS Keychain), check status, or sync assigned issues.       |
 | `wt clue`      | `wt clue list --source git` / `wt clue git-sync --repo "$HOME/work/repo"`        | List local `Clues` or scan Git / GitHub / GitLab commit history for issue keys.  |
 | `wt sensor`    | `wt sensor evaluate --date 2026-11-07 --apply`                                   | Evaluate local CIDR, Wi-Fi SSID, VPN, and display rules to infer `workplace`.    |
 | `wt reconcile` | `wt reconcile inspect` / `wt reconcile propose` / `wt reconcile apply`           | Detect plausibility gaps and split chaotic `Intervals` via `RetroSplitEngine`.   |
@@ -135,6 +135,36 @@ Worktrack enforces an architectural anti-surveillance gate between your private 
 1. **Local Redaction & Rounding (`RollupPolicy`)**: Raw `Intervals`, fuzzy chaotic notes, and `ContextFacts` remain strictly on your workstation. When you run `wt outbox preview --stage` (or open the **Outbox Diff** view via `o`), `RollupEngine` buckets `Intervals` by window (`day`, `week`, `month`, `interval`), rounds durations (`nearest`, `ceil`, `floor` to configurable quantum seconds), strips raw notes when `redact_notes = true`, and maps *Standing Activities* to their configured `rollup_target_ref`.
 1. **Explicit Approval Gate (`ApprovedOutboxGrant`)**: Every staged `OutboxItem` displays its before/after duration delta and exact outbound JSON preview. No `Sink` adapter can transmit data without a cryptographically sealed `ApprovedOutboxGrant` token minted by approving the `OutboxItem`.
 1. **Immutable Audit Trail (`EgressLedger`)**: Every flush attempt records an append-only `EgressRecord` containing the UTC timestamp, destination URI, canonical payload SHA-256 digest, HTTP status, external receipt ID, and W3C `FRITZ_TRACE_ID`.
+
+## Connecting to Jira Cloud (Login, Issue Sync & Worklogs)
+
+Worktrack stores your per-user Jira OAuth credentials strictly in your workstation's OS Keychain (`UserTokenStore` via macOS Keychain, Linux Secret Service, or Windows Credential Manager, falling back to a `0o600` `$XDG_CONFIG_HOME/worktrack/oauth_tokens.json` file on headless systems).
+
+```bash
+# 1. Configure your Jira Cloud site ID (visible at https://<site>.atlassian.net/_edge/tenant_info)
+export WORKTRACK_JIRA_CLOUD_ID="your-atlassian-cloud-id"
+
+# 2a. Log in via OAuth 2.0 3LO PKCE browser flow
+export WORKTRACK_JIRA_CLIENT_ID="your-oauth-client-id"
+export WORKTRACK_JIRA_REDIRECT_URI="http://127.0.0.1:5173/callback"
+wt jira auth-url --json
+wt jira login --code "<code-from-redirect>" --code-verifier "<code_verifier>"
+
+# 2b. Or store an OAuth access/refresh token directly into your OS Keychain
+wt jira login --access-token "<jira-oauth-access-token>" --refresh-token "<optional-refresh-token>"
+
+# 3. Verify login status (never prints raw tokens) and sync assigned Jira issues
+wt jira status
+wt jira sync --jql 'assignee = currentUser() AND statusCategory != Done'
+
+# 4. Stage, approve, and flush rounded worklogs to Jira via Outbox
+wt outbox preview --sink jira --stage --cadence eod
+wt outbox approve <outbox-item-id>
+wt outbox flush --sink jira
+
+# 5. Sign out and remove stored credentials from the OS Keychain when needed
+wt jira logout
+```
 
 ## Custom `workplace` `Facets`, Local `Sensors` & Tax / Attribution Exports
 

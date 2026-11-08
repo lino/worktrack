@@ -17,7 +17,6 @@ from worktrack.cli import (
 )
 from worktrack.connectors import DEFAULT_JIRA_HTTP_TIMEOUT_SECONDS, JiraHttpResponse
 from worktrack.outbox import ApprovedOutboxGrant, OutboxItem, SinkWriteReceipt, enforce_outbox_grant
-from worktrack.secrets import OAuthTokenBundle, SecretValue, UserTokenStore
 from worktrack.telemetry.catalog import CANONICAL_LABEL_VALUE_CEILING
 from worktrack.web.schema_export import (
     DEFAULT_SCHEMA_OUTPUT_PATH,
@@ -222,25 +221,38 @@ def test_wt_jira_status_auth_url_and_sync_cli(tmp_path: Path) -> None:
     rc_unauth, unauth_json, _ = _invoke_wt(["jira", "status", "--json"], env)
     assert rc_unauth == EXIT_SUCCESS and json.loads(unauth_json)["authenticated"] is False
 
-    token_store = UserTokenStore(fallback_path=Path(env["WORKTRACK_TOKEN_STORE_PATH"]))
-    token_store.store(
-        "jira",
-        OAuthTokenBundle(
-            access_token=SecretValue(SAMPLE_JIRA_ACCESS_TOKEN),
-            scope="read:jira-work",
-        ),
+    rc_login, login_json, _ = _invoke_wt(
+        [
+            "jira",
+            "login",
+            "--access-token",
+            SAMPLE_JIRA_ACCESS_TOKEN,
+            "--scope",
+            "read:jira-work write:jira-work",
+            "--json",
+        ],
+        env,
     )
+    assert rc_login == EXIT_SUCCESS and json.loads(login_json)["authenticated"] is True
+    assert SAMPLE_JIRA_ACCESS_TOKEN not in login_json
 
     rc_auth, auth_json, _ = _invoke_wt(["jira", "status", "--json"], env)
     assert rc_auth == EXIT_SUCCESS and json.loads(auth_json)["authenticated"] is True
     assert SAMPLE_JIRA_ACCESS_TOKEN not in auth_json
 
     rc_url, url_json, _ = _invoke_wt(["jira", "auth-url", "--json"], env)
-    assert rc_url == EXIT_SUCCESS and "code_challenge=" in json.loads(url_json)["authorization_url"]
+    parsed_url = json.loads(url_json)
+    assert rc_url == EXIT_SUCCESS and "code_challenge=" in parsed_url["authorization_url"]
+    assert len(str(parsed_url["code_verifier"])) >= 43
 
     with use_jira_transport(_FakeJiraTransport()):
         rc_sync, sync_json, _ = _invoke_wt(["jira", "sync", "--json"], env)
     assert rc_sync == EXIT_SUCCESS and json.loads(sync_json)["activities_created"] == 1
+
+    rc_logout, logout_json, _ = _invoke_wt(["jira", "logout", "--json"], env)
+    assert rc_logout == EXIT_SUCCESS and json.loads(logout_json)["removed"] is True
+    rc_after, after_json, _ = _invoke_wt(["jira", "status", "--json"], env)
+    assert rc_after == EXIT_SUCCESS and json.loads(after_json)["authenticated"] is False
 
 
 def test_wt_serve_loopback_wsgi_and_readiness_check(tmp_path: Path) -> None:

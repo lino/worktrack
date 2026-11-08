@@ -1,78 +1,53 @@
 # Worktrack (`wt`)
 
-**Low-key, anti-surveillance personal time ledger, Outbox rollup gateway, and keyboard-first planning cockpit.**
+**Track your time, plan your week, and log hours to Jira — without giving up your privacy.**
 
 [![CI](https://github.com/lino/worktrack/actions/workflows/ci.yml/badge.svg)](https://github.com/lino/worktrack/actions/workflows/ci.yml)
 [![Docs](https://github.com/lino/worktrack/actions/workflows/docs.yml/badge.svg)](https://lino.github.io/worktrack/)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
-`worktrack` (`wt` CLI, `worktrackd` local IPC daemon, and Django + DRF + Vue 3 cockpit) is a privacy-first time tracking and horizon planning tool built with Python 3.13+ (`uv` + `mise`), SQLite / PostgreSQL, and TypeScript (`@hey-api/openapi-ts` + `pinia-orm`).
+**Worktrack (`wt`)** is a personal time tracker and daily/weekly planner for people who live in the terminal and the browser. It helps you keep track of what you worked on, stay focused, and report hours to Jira, calendars, or tax forms — while keeping your raw timeline and personal notes strictly on your own computer.
 
-Inspired by `collectd` and Ganglia telemetry pipelines, `worktrack` keeps raw personal time slices, notes, and ambient activity clues strictly on your local workstation while staging previewable, aggregated `Rollups` through an explicit `Outbox` before any external `Sink` (Jira Cloud, Calendar busy slots, or a team `Hub`) ever receives data.
-
-______________________________________________________________________
-
-## Core Design Principles
-
-1. **Anti-Surveillance `collectd`/Ganglia Rollup Outbox**: Raw `Intervals`, personal notes, and local `Clues` never leave the local SQLite `Ledger` unpreviewed. Outbound writes stage as rounded `Rollup` items in `OutboxStore` with JSON dry-run diffs, require a sealed `ApprovedOutboxGrant`, and record immutable SHA-256 receipts in `EgressLedger`.
-1. **Structured & Chaotic Capture + RetroSplit Reconciliation**: Clock in/out in real time (`wt in`, `wt out`) or capture coarse unallocated time blocks (`wt log`) and split them retrospectively (`wt split`, `wt reconcile`) using Git/Calendar `Clues`.
-1. **Opaque OAuth Secret Sharing (`SecretProvider` SPI)**: Application-level OAuth `client_secret` values are resolved server-side via pluggable URIs (`env://`, `file://`, `keyring://`, or optional `aws-sm://` via `worktrack[aws]`) behind a stateless PKCE Confidential Token-Exchange Broker. Per-user OAuth tokens remain strictly in the user's local OS Keychain (`UserTokenStore`).
-1. **Weighted Multi-Entity Attribution DAG**: Attribute `Activities` and `Entities` across `project`, `component`, `customer`, `epic`, and `cost_center` nodes with cycle-checked transitive weight propagation.
-1. **Local ContextFacts & Workplace Sensors**: Track daily or interval-scoped facts such as `workplace=home_office|office|mobile_work` (manual or inferred locally from subnet CIDR, Wi-Fi SSID, VPN interface, or display count) and export annual tax-return statements (`CSV`, `JSON`, `Markdown`).
+📖 **Full Documentation**: [https://lino.github.io/worktrack/](https://lino.github.io/worktrack/)
 
 ______________________________________________________________________
 
-## Architecture Overview
+## What Worktrack Can Do for You
 
-```mermaid
-flowchart LR
-    subgraph Node["Local User Node (SQLite WAL + OS Keyring)"]
-        CLI["wt CLI / Shell Prompts / Vue Cockpit"]
-        Daemon["worktrackd IPC + Ledger + AgendaPlanner"]
-        Clues["ClueStore (Git / Forge / Calendar / Sensors)"]
-        Reconcile["PlausibilityReconciler + RetroSplitEngine"]
-        Outbox["RollupEngine -> OutboxStore -> EgressLedger"]
-        Keyring["UserTokenStore (OS Keychain / 0600)"]
-    end
+### ⏱️ Track time your way — live or at the end of the day
 
-    subgraph External["External Sources, Broker & Sinks"]
-        Broker["Stateless OAuth PKCE Broker (SecretProvider SPI)"]
-        Jira["Jira Cloud (JQL Source & ADF Worklog Sink)"]
-        Cal["Calendars (iCal / JMAP / MS 365 + Busy Sink)"]
-        Hub["Optional Ganglia Team Hub (Aggregate Rollups & Entity Catalog)"]
-    end
+- **Clock in as you go**: Start and stop timers from the terminal (`wt in`, `wt out`) or the keyboard-driven web app.
+- **Or log rough blocks and split them later**: Had a chaotic afternoon and forgot to switch timers? Record a single block (`wt log --start 13:00 --end 17:00`) and divide it across tasks whenever you are ready (`wt split`).
 
-    CLI <--> Daemon
-    Clues --> Reconcile --> Daemon
-    Daemon --> Outbox
-    CLI <-->|"PKCE Code Exchange"| Broker
-    Broker -->|"Tokens"| Keyring
-    Outbox -->|"ApprovedOutboxGrant + SHA-256 Receipt"| Jira
-    Outbox -->|"Opaque Focus Time Busy"| Cal
-    Outbox -->|"Aggregate Rollups Only"| Hub
-```
+### 🔒 Share rounded summaries, never your raw timeline
 
-______________________________________________________________________
+- **Everything starts on your machine**: Your exact start/stop times, personal scratch notes, and local activity hints are stored in a local SQLite database on your workstation.
+- **An Outbox you control**: Nothing is ever sent to Jira, your calendar, or a team server behind your back. When you are ready to report time, Worktrack rounds and groups your hours into an **Outbox** where you can preview the exact changes and approve what gets sent.
 
-## Ubiquitous Language
+### 🧩 Reconstruct your day without guessing
 
-| Canonical Term                  | Meaning                                                                                                              |
-| ------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| **`Interval`**                  | Bounded time slice (`[started_at, ended_at)`) recorded in `structured` or `chaotic` (unallocated) mode.              |
-| **`Activity`**                  | Trackable work unit: **Targeted** (finite deliverable such as `PROJ-123`) or **Standing** (recurring `Meetings`).    |
-| **`Entity` & `Attribution`**    | Weighted many-to-many DAG linking `Activities` to `project`, `component`, `customer`, `epic`, or `cost_center`.      |
-| **`Facet` & `ContextFact`**     | Typed user-configurable dimension (e.g. `workplace=home_office\|office\|mobile_work`) asserted on a date/slice.      |
-| **`Collector` / `Sensor`**      | Local observer (Git commits, GitHub/GitLab MRs, Calendar events, network/display probe) emitting local `Clues`.      |
-| **`Reconciler` / `RetroSplit`** | Plausibility detector and duration-conserving splitter (`proportional`, `equal`, `weights`) for unbooked work.       |
-| **`Rollup` -> `Outbox`**        | `collectd`-style aggregator and previewable staging queue gating all outbound `Sink` writes (`ApprovedOutboxGrant`). |
-| **`EgressLedger`**              | Append-only local audit log recording timestamp, destination `Sink`, and SHA-256 payload digest for every write.     |
-| **`Agenda` & `FocusBlock`**     | Horizon planner (*Now*, *Today*, *This Week*) and scheduled deep-work windows (optionally published as busy).        |
+- **Automatic local breadcrumbs**: Worktrack can scan your local Git commits, GitHub/GitLab pull and merge requests, and calendar meetings to remind you what you worked on.
+- **Smart end-of-day reconciliation**: If you committed code to two tickets during an unallocated afternoon block, `wt reconcile` spots the gap and suggests a proportional time split in one command.
+
+### 🎯 Plan your day and protect your focus time
+
+- **Three clear horizons**: See what is on your plate for **Right Now**, **Today**, and **This Week** (`wt now`, `wt today`, `wt week`).
+- **Calendar focus blocks**: Schedule deep-work windows (`wt agenda focus`) and optionally publish them to your work calendar as simple `"Focus Time"` busy slots — so colleagues know you are heads-down without seeing your internal task notes.
+
+### 🏠 Effortless home-office & project reports
+
+- **Work-location tracking for tax returns**: Log whether you worked from `home_office`, `office`, or `mobile_work` each day — either with `wt fact set workplace=home_office` or automatically based on your local Wi-Fi, network subnet, VPN, or connected monitors. Export a ready-to-file annual summary (`Markdown`, `CSV`, or `JSON`) at tax time.
+- **Multi-project & customer breakdowns**: Link tasks across projects, components, customers, epics, and cost centers (for example, splitting a shared platform task 60% / 40% between two products) and export clean time reports.
+
+### ⚡ Always visible in your shell prompt
+
+- Drop-in prompt plugins for **`starship.rs`**, **`oh-my-zsh`**, and **PowerShell** show your current task and elapsed time right in your terminal prompt in under `10 ms`.
 
 ______________________________________________________________________
 
 ## Quickstart
 
-### 1. Install Toolchain & Dependencies
+### 1. Install Worktrack
 
 Using [`mise`](https://mise.jdx.dev/) and [`uv`](https://docs.astral.sh/uv/):
 
@@ -88,110 +63,227 @@ uv sync --locked --dev
 pnpm -C frontend install --frozen-lockfile
 ```
 
-### 2. Track Time, ContextFacts & Horizons (`wt` CLI)
+### 2. Everyday Terminal Workflow (`wt`)
 
 ```sh
-# Start and stop structured work intervals
-wt in PROJ-123 --title "Implement Outbox diff preview" --tag backend
-wt out --note "Completed unit tests"
+# Start and stop a timer on a task
+wt in "Fix login redirect" --ref PROJ-123
+wt out --note "Added regression test"
 
-# Record today's workplace for tax-return summaries
-wt fact set workplace=home_office
+# Forgot to run a timer? Log a block and split it across tasks later
+wt log "Afternoon bug triage" --at 2026-11-08T13:00:00Z --end 2026-11-08T15:00:00Z --chaotic
+wt split <interval-id> --part "PROJ-123 Build=75m" --part "Team Sync=45m"
 
-# Capture a chaotic (unallocated) block and split it retrospectively
-wt log --start 13:00 --end 15:00 --note "Afternoon debugging"
-wt split <interval-id> PROJ-123=75m Meetings=45m
+# Record where you worked today (for your annual tax-return export)
+wt fact set workplace=home_office --date 2026-11-08
 
-# Inspect Now / Today / This Week horizons and Agenda
+# Check your day and week at a glance
 wt now
 wt today
 wt week
-wt agenda add PROJ-123 --horizon today --priority 1 --budget 120
-wt agenda focus --start 2026-11-08T09:00:00Z --end 2026-11-08T11:00:00Z --label "Deep Work" --expose-busy
 ```
 
-### 3. Collect Clues, Evaluate Sensors & Reconcile Gaps
+### 3. Let Worktrack Help You Fill In the Blanks
 
 ```sh
-# Scan local Git commits into local ClueStore (zero external egress)
+# Scan your local Git commits for ticket references (stays 100% local)
 wt clue git-sync --repo .
 wt clue list
 
-# Evaluate local workplace sensor rules (CIDR, SSID, VPN, display count)
+# Detect where you are working today from local network/display rules
 wt sensor evaluate --apply
 
-# Detect unbooked Activities / chaotic blocks and apply a proportional RetroSplit
+# Find unbooked time and split it across the tickets you touched
 wt reconcile inspect
-wt reconcile propose --interval-id <interval-id> --activity PROJ-123 --activity PROJ-456 --strategy proportional
-wt reconcile apply --interval-id <interval-id> --activity PROJ-123 --activity PROJ-456 --strategy proportional
+wt reconcile propose --interval-id <interval-id> --activity <act-1> --activity <act-2> --strategy proportional
+wt reconcile apply --interval-id <interval-id> --activity <act-1> --activity <act-2> --strategy proportional
 ```
 
-### 4. Preview Outbox Diffs, Sync Calendars & Export Reports
+______________________________________________________________________
+
+## Connecting to Jira Cloud (Login, Sync & Worklogs)
+
+Worktrack connects to Jira Cloud so you can pull your assigned issues into your local task list and push approved time logs back to Jira when you are ready.
+
+Your Jira credentials are stored in your operating system's native credential store (**macOS Keychain**, **Linux Secret Service / KWallet**, or **Windows Credential Manager**) — never in plain-text config files.
+
+### Step 1: Set your Jira Cloud site ID
+
+Tell Worktrack which Jira Cloud site you use by setting `WORKTRACK_JIRA_CLOUD_ID` in your shell profile:
 
 ```sh
-# Stage, preview, approve, and flush aggregated Rollups
-wt outbox preview --sink jira --cadence eod
+export WORKTRACK_JIRA_CLOUD_ID="your-atlassian-cloud-id"
+```
+
+> **Tip — How to find your Jira Cloud ID:**
+> Open `https://<your-company>.atlassian.net/_edge/tenant_info` in your browser while signed in to Jira. It returns a small JSON snippet like `{"cloudId": "01234567-89ab-cdef-0123-456789abcdef"}`.
+
+### Step 2: Log in to Jira (`wt jira login`)
+
+You can sign in either via an OAuth 2.0 browser flow (recommended when your team runs a shared Worktrack OAuth broker so nobody has to distribute a `client_secret`) or by storing an OAuth token directly.
+
+#### Option A: Browser OAuth 2.0 Login (PKCE)
+
+1. Generate your login link and one-time PKCE verifier:
+
+   ```sh
+   export WORKTRACK_JIRA_CLIENT_ID="your-oauth-app-client-id"
+   export WORKTRACK_JIRA_REDIRECT_URI="http://127.0.0.1:5173/callback"
+
+   wt jira auth-url --json
+   ```
+
+1. Open the `authorization_url` from the output in your browser and click **Accept** on the Atlassian consent screen.
+
+1. Copy the `code` parameter from the redirect URL and exchange it into your local OS Keychain:
+
+   ```sh
+   wt jira login --code "<authorization-code>" --code-verifier "<code-verifier-from-step-1>"
+   ```
+
+#### Option B: Direct Token Login
+
+If you already have a Jira OAuth 2.0 access token (and optional refresh token), save it directly into your OS Keychain:
+
+```sh
+wt jira login \
+  --access-token "<your-jira-oauth-access-token>" \
+  --refresh-token "<optional-refresh-token>"
+```
+
+#### Verify or sign out at any time
+
+```sh
+# Check whether your workstation is signed in (never prints your secret token)
+wt jira status
+
+# Remove your stored Jira credentials from the OS Keychain
+wt jira logout
+```
+
+### Step 3: Pull your assigned Jira issues (`wt jira sync`)
+
+Once logged in, pull your assigned Jira issues into Worktrack:
+
+```sh
+# Sync open issues assigned to you (and their projects & components)
+wt jira sync
+
+# Or pass a custom JQL filter
+wt jira sync --jql 'project = PROJ AND assignee = currentUser() AND status != Done'
+```
+
+Now you can clock in against any synced issue by key (`wt in "PROJ-123"`).
+
+### Step 4: Preview and send worklogs to Jira (`wt outbox`)
+
+Worktrack never posts time to Jira automatically while you are working. Instead, you stage, preview, and approve rounded worklogs in your **Outbox**:
+
+```sh
+# 1. Preview and stage rounded worklogs for Jira
+wt outbox preview --sink jira --stage --cadence eod
+
+# 2. Approve the staged worklog item(s) you want to send
+wt outbox list
 wt outbox approve <outbox-item-id>
+
+# 3. Send approved worklogs to Jira Cloud
 wt outbox flush --sink jira
+
+# 4. View your local receipt log (with SHA-256 audit digests)
 wt outbox ledger
+```
 
-# Import iCal (.ics) meetings or stage FocusBlocks as opaque "Focus Time" busy slots
+______________________________________________________________________
+
+## Calendars, Tax Reports & Browser Cockpit
+
+### Sync Calendars & Publish Focus Time
+
+```sh
+# Import meetings from a calendar (.ics file, Fastmail JMAP, or Microsoft 365)
 wt calendar sync --ics-file calendar.ics
-wt calendar stage-focus --start 2026-11-08T00:00:00Z --end 2026-11-09T00:00:00Z
 
-# Generate annual workplace tax-return or multi-entity attribution reports
+# Stage scheduled Focus Blocks as opaque "Focus Time" busy slots on your calendar
+wt calendar stage-focus --start 2026-11-08T00:00:00Z --end 2026-11-09T00:00:00Z
+```
+
+### Export Tax & Project Reports
+
+```sh
+# Annual home-office / office / mobile-work summary for your tax return
 wt export tax --year 2026 --format markdown
+
+# Time breakdown across projects, customers, epics, and cost centers
 wt export attribution --start 2026-11-01T00:00:00Z --end 2026-11-08T00:00:00Z --format csv
 ```
 
-### 5. Launch the Browser Cockpit & Local IPC Daemon
+### Launch the Browser Cockpit
+
+Prefer a visual interface with fast keyboard shortcuts? Run the local API server and Vue 3 cockpit:
 
 ```sh
-# Start the local sub-10ms IPC socket daemon for shell prompts
+# Start the local background daemon for instant (< 10 ms) shell prompt updates
 wt daemon --background
 
-# Launch the Django/DRF API backend (http://127.0.0.1:8000)
+# Start the local API server (http://127.0.0.1:8000)
 wt serve
 
-# In another terminal, launch the Vue 3 + Vuetify keyboard cockpit
+# In another terminal, start the web cockpit
 pnpm -C frontend run dev
 ```
 
-| Keyboard Chord | Cockpit Action                                           |
-| -------------- | -------------------------------------------------------- |
-| `Ctrl+K` / `:` | Open native `<dialog>` Command Palette                   |
-| `?`            | Open Keyboard Shortcut Help modal                        |
-| `f`            | Switch to **Now & Insights** view                        |
-| `p`            | Switch to **Today / Week Agenda & FocusBlocks** view     |
-| `c`            | Switch to **Chaotic Interval & Attribution Editor** view |
-| `o`            | Switch to **Outbox Diff Preview & EgressLedger** view    |
-| `s`            | Switch to **Reconciler, Clues & Workplace Sensors** view |
+| Shortcut       | What It Opens                                      |
+| -------------- | -------------------------------------------------- |
+| `Ctrl+K` / `:` | Command Palette (search and run any action)        |
+| `?`            | Keyboard Shortcut Help                             |
+| `f`            | **Now & Insights** (live timer & daily progress)   |
+| `p`            | **Today / Week Agenda & Focus Blocks**             |
+| `c`            | **Chaotic Interval Splitter & Attribution Editor** |
+| `o`            | **Outbox Preview, Approval & Receipt Log**         |
+| `s`            | **Reconciler, Git/Calendar Clues & Exports**       |
 
 ______________________________________________________________________
 
-## Shell Prompt Integration (`< 10 ms` p95)
+## Shell Prompt Integration
 
-`wt status --porcelain` queries `worktrackd` over a `0600` Unix domain socket (or authenticated loopback TCP on Windows) and exits in `< 15 ms` with an empty output when `worktrackd` is offline so your shell prompt never hangs:
+Display your active timer in your shell prompt without slowing down your terminal (`< 10 ms` response time, and exits silently when idle):
 
 - **`starship.rs`**: Copy [`shell/starship.toml`](shell/starship.toml) into `$XDG_CONFIG_HOME/starship.toml`.
 - **`oh-my-zsh`**: Source [`shell/worktrack.plugin.zsh`](shell/worktrack.plugin.zsh) and add `$(worktrack_prompt_info)` to `PROMPT` or `RPROMPT`.
-- **PowerShell**: `Import-Module ./shell/WorktrackPrompt.psm1`.
+- **PowerShell**: Add `Import-Module ./shell/WorktrackPrompt.psm1` to your PowerShell profile.
 
 ______________________________________________________________________
 
-## Development & Verification Gates
+## How It Works Under the Hood
 
-```sh
-mise run verify        # ruff + mypy --strict + frontend hygiene/typecheck + pytest (173) + vitest (10)
-mise run bench         # BENCH-SPEC-WT latency benchmarks (IPC, rollup preview, attribution DAG, secrets)
-mise run openapi-sync  # Export drf-spectacular OpenAPI 3.1 schema & regenerate @hey-api/openapi-ts client
-mise run docs          # Build strict Zensical User & Operations manuals (site/)
+```mermaid
+flowchart LR
+    subgraph Local["Your Computer (Private SQLite + OS Keychain)"]
+        Capture["wt CLI / Shell Prompt / Web Cockpit"]
+        Clues["Local Clues (Git, PRs, Calendar, Workplace Sensors)"]
+        Reconcile["Reconciler & Time Splitter"]
+        Outbox["Outbox Preview & Approval Gate"]
+    end
+
+    subgraph External["External Services (Only What You Approve)"]
+        Jira["Jira Cloud (Pull Issues & Push Approved Worklogs)"]
+        Cal["Work Calendar (Import Meetings & Publish 'Focus Time')"]
+        Hub["Optional Team Hub (Shared Project Catalog & Rollups)"]
+    end
+
+    Clues --> Reconcile --> Capture
+    Capture --> Outbox
+    Outbox -->|"Approved Rollups Only"| Jira
+    Outbox -->|"Opaque 'Focus Time' Busy"| Cal
+    Outbox -->|"Aggregated Totals Only"| Hub
 ```
 
 ______________________________________________________________________
 
 ## Documentation & License
 
+- **Online Manual**: [https://lino.github.io/worktrack/](https://lino.github.io/worktrack/)
 - **User Guide**: [`docs/user/guide.md`](docs/user/guide.md)
-- **Operations & Alert Runbook**: [`docs/operations/runbook.md`](docs/operations/runbook.md)
+- **Operations & Self-Hosting Runbook**: [`docs/operations/runbook.md`](docs/operations/runbook.md)
 - **License**: Licensed under the [Apache License, Version 2.0](LICENSE).

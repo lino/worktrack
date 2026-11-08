@@ -34,6 +34,8 @@ from worktrack.connectors import (
 )
 from worktrack.secrets import (
     DEFAULT_TOKEN_ACCOUNT,
+    OAuthTokenBundle,
+    SecretValue,
     UserTokenStore,
     generate_pkce_pair,
 )
@@ -41,10 +43,14 @@ from worktrack.secrets import (
 # region Constants
 JIRA_ACTION_STATUS: Final = "status"
 JIRA_ACTION_AUTH_URL: Final = "auth-url"
+JIRA_ACTION_LOGIN: Final = "login"
+JIRA_ACTION_LOGOUT: Final = "logout"
 JIRA_ACTION_SYNC: Final = "sync"
 
 ENV_JIRA_CLIENT_ID: Final = "WORKTRACK_JIRA_CLIENT_ID"
 ENV_JIRA_REDIRECT_URI: Final = "WORKTRACK_JIRA_REDIRECT_URI"
+ENV_JIRA_ACCESS_TOKEN: Final = "WORKTRACK_JIRA_ACCESS_TOKEN"
+ENV_JIRA_REFRESH_TOKEN: Final = "WORKTRACK_JIRA_REFRESH_TOKEN"
 
 DEFAULT_ATLASSIAN_AUTHORIZE_URL: Final = "https://auth.atlassian.com/authorize"
 DEFAULT_ATLASSIAN_AUDIENCE: Final = "api.atlassian.com"
@@ -77,25 +83,18 @@ def register_web_subparsers(
     subparsers: argparse._SubParsersAction[Any],
     json_parent: argparse.ArgumentParser,
 ) -> None:
-    """Register `wt jira {status,auth-url,sync}` and `wt serve` subcommands."""
-    _register_jira_parser(subparsers, json_parent)
-    _register_serve_parser(subparsers, json_parent)
-
-
-def _register_jira_parser(
-    subparsers: argparse._SubParsersAction[Any],
-    json_parent: argparse.ArgumentParser,
-) -> None:
-    """Configure `wt jira {status,auth-url,sync}` nested subparsers."""
+    """Register `wt jira {status,auth-url,login,logout,sync}` and `wt serve` subcommands."""
     jira_p = subparsers.add_parser(
         SUBCOMMAND_JIRA,
         parents=[json_parent],
-        help="Inspect local Jira OAuth status, build PKCE auth URL, or sync assigned issues.",
+        help="Log in, inspect local OAuth status, build PKCE auth URL, or sync Jira issues.",
     )
     jira_p.set_defaults(handler=handle_jira, canonical_subcommand=SUBCOMMAND_JIRA)
     nested = jira_p.add_subparsers(dest="jira_action", required=True)
     _register_jira_auth_parsers(nested, json_parent)
+    _register_jira_login_parsers(nested, json_parent)
     _register_jira_sync_parser(nested, json_parent)
+    _register_serve_parser(subparsers, json_parent)
 
 
 def _register_jira_auth_parsers(
@@ -103,32 +102,35 @@ def _register_jira_auth_parsers(
     json_parent: argparse.ArgumentParser,
 ) -> None:
     """Configure `wt jira status` and `wt jira auth-url` subparsers."""
-    status_p = nested.add_parser(
-        JIRA_ACTION_STATUS,
-        parents=[json_parent],
-        help="Inspect workstation-local Jira OAuth token status without exposing secrets.",
-    )
+    status_p = nested.add_parser(JIRA_ACTION_STATUS, parents=[json_parent])
     status_p.add_argument("--account", default=DEFAULT_TOKEN_ACCOUNT, help="Local token account.")
 
-    auth_p = nested.add_parser(
-        JIRA_ACTION_AUTH_URL,
-        parents=[json_parent],
-        help="Generate Atlassian OAuth 2.0 3LO PKCE S256 authorization URL.",
-    )
+    auth_p = nested.add_parser(JIRA_ACTION_AUTH_URL, parents=[json_parent])
     auth_p.add_argument("--client-id", default=None, help="Public OAuth client_id override.")
     auth_p.add_argument("--redirect-uri", default=None, help="OAuth redirect_uri override.")
     auth_p.add_argument("--state", default=None, help="Optional explicit CSRF state token.")
     auth_p.add_argument("--scope", default=DEFAULT_JIRA_OAUTH_SCOPES, help="OAuth scopes.")
-    auth_p.add_argument(
-        "--authorize-url",
-        default=DEFAULT_ATLASSIAN_AUTHORIZE_URL,
-        help="Atlassian OAuth authorize endpoint URL.",
-    )
-    auth_p.add_argument(
-        "--audience",
-        default=DEFAULT_ATLASSIAN_AUDIENCE,
-        help="Atlassian OAuth audience parameter.",
-    )
+    auth_p.add_argument("--authorize-url", default=DEFAULT_ATLASSIAN_AUTHORIZE_URL)
+    auth_p.add_argument("--audience", default=DEFAULT_ATLASSIAN_AUDIENCE)
+
+
+def _register_jira_login_parsers(
+    nested: argparse._SubParsersAction[Any],
+    json_parent: argparse.ArgumentParser,
+) -> None:
+    """Configure `wt jira login` and `wt jira logout` subparsers."""
+    login_p = nested.add_parser(JIRA_ACTION_LOGIN, parents=[json_parent])
+    login_p.add_argument("--access-token", default="", help="Direct Jira OAuth access token.")
+    login_p.add_argument("--refresh-token", default="", help="Optional OAuth refresh token.")
+    login_p.add_argument("--code", default="", help="OAuth 2.0 PKCE authorization code.")
+    login_p.add_argument("--code-verifier", default="", help="PKCE S256 code_verifier.")
+    login_p.add_argument("--redirect-uri", default="", help="OAuth redirect_uri override.")
+    login_p.add_argument("--scope", default=DEFAULT_JIRA_OAUTH_SCOPES, help="OAuth scopes.")
+    login_p.add_argument("--expires-in", type=int, default=None, help="Token TTL in seconds.")
+    login_p.add_argument("--account", default=DEFAULT_TOKEN_ACCOUNT, help="Local token account.")
+
+    logout_p = nested.add_parser(JIRA_ACTION_LOGOUT, parents=[json_parent])
+    logout_p.add_argument("--account", default=DEFAULT_TOKEN_ACCOUNT, help="Local token account.")
 
 
 def _register_jira_sync_parser(
@@ -136,11 +138,7 @@ def _register_jira_sync_parser(
     json_parent: argparse.ArgumentParser,
 ) -> None:
     """Configure `wt jira sync` subparser."""
-    sync_p = nested.add_parser(
-        JIRA_ACTION_SYNC,
-        parents=[json_parent],
-        help="Sync assigned Jira Cloud issues into local Activities, Entities, and Attributions.",
-    )
+    sync_p = nested.add_parser(JIRA_ACTION_SYNC, parents=[json_parent])
     sync_p.add_argument("--jql", default=None, help="Optional JQL query override.")
     sync_p.add_argument("--cloud-id", default=None, help="Optional Jira Cloud site ID override.")
     sync_p.add_argument("--api-base-url", default=None, help="Optional Jira API base URL override.")
@@ -152,27 +150,10 @@ def _register_serve_parser(
     json_parent: argparse.ArgumentParser,
 ) -> None:
     """Configure `wt serve` loopback/container WSGI server subparser."""
-    serve_p = subparsers.add_parser(
-        SUBCOMMAND_SERVE,
-        parents=[json_parent],
-        help="Serve the dual-mode Worktrack Django + DRF HTTP API.",
-    )
-    serve_p.add_argument(
-        "--host",
-        default=DEFAULT_SERVE_HOST,
-        help="Bind host address (default: 127.0.0.1).",
-    )
-    serve_p.add_argument(
-        "--port",
-        type=int,
-        default=DEFAULT_SERVE_PORT,
-        help="Bind TCP port (default: 8000).",
-    )
-    serve_p.add_argument(
-        "--check",
-        action="store_true",
-        help="Verify Django configuration and exit 0 without binding a TCP socket.",
-    )
+    serve_p = subparsers.add_parser(SUBCOMMAND_SERVE, parents=[json_parent])
+    serve_p.add_argument("--host", default=DEFAULT_SERVE_HOST, help="Bind host address.")
+    serve_p.add_argument("--port", type=int, default=DEFAULT_SERVE_PORT, help="Bind TCP port.")
+    serve_p.add_argument("--check", action="store_true", help="Verify Django readiness only.")
     serve_p.set_defaults(handler=handle_serve, canonical_subcommand=SUBCOMMAND_SERVE)
 
 
@@ -181,13 +162,15 @@ def _register_serve_parser(
 
 # region CLI
 def handle_jira(ctx: CliContext, args: argparse.Namespace) -> int:
-    """Dispatch `wt jira {status,auth-url,sync}`."""
-    action = str(args.jira_action)
-    if action == JIRA_ACTION_STATUS:
-        return _handle_jira_status(ctx, args)
-    if action == JIRA_ACTION_AUTH_URL:
-        return _handle_jira_auth_url(ctx, args)
-    return _handle_jira_sync(ctx, args)
+    """Dispatch `wt jira {status,auth-url,login,logout,sync}`."""
+    dispatch = {
+        JIRA_ACTION_STATUS: _handle_jira_status,
+        JIRA_ACTION_AUTH_URL: _handle_jira_auth_url,
+        JIRA_ACTION_LOGIN: _handle_jira_login,
+        JIRA_ACTION_LOGOUT: _handle_jira_logout,
+    }
+    handler = dispatch.get(str(args.jira_action), _handle_jira_sync)
+    return handler(ctx, args)
 
 
 def _handle_jira_status(ctx: CliContext, args: argparse.Namespace) -> int:
@@ -208,6 +191,65 @@ def _handle_jira_status(ctx: CliContext, args: argparse.Namespace) -> int:
     else:
         state_label = "authenticated" if bundle is not None else "unauthenticated"
         write_line(ctx.stdout, f"jira ({account}): {state_label}")
+    return EXIT_SUCCESS
+
+
+def _handle_jira_login(ctx: CliContext, args: argparse.Namespace) -> int:
+    """Persist a direct Jira token or PKCE-exchanged bundle in local `UserTokenStore`."""
+    account = str(args.account)
+    bundle = _resolve_login_bundle(ctx, args)
+    UserTokenStore(environ=ctx.environ).store(JIRA_PROVIDER_SLUG, bundle, account=account)
+    if ctx.as_json:
+        write_json(
+            ctx.stdout,
+            {
+                "provider": JIRA_PROVIDER_SLUG,
+                "account": account,
+                "authenticated": True,
+                "has_refresh_token": bundle.refresh_token is not None,
+                "scope": bundle.scope,
+            },
+        )
+    else:
+        write_line(ctx.stdout, f"jira ({account}): authenticated")
+    return EXIT_SUCCESS
+
+
+def _resolve_login_bundle(ctx: CliContext, args: argparse.Namespace) -> OAuthTokenBundle:
+    """Resolve `OAuthTokenBundle` from `--code`/`--code-verifier` or `--access-token`."""
+    code = str(args.code).strip()
+    verifier = str(args.code_verifier).strip()
+    if code:
+        from worktrack.web.services import WebServiceContainer
+
+        redirect_uri = str(args.redirect_uri).strip() or ctx.environ.get(ENV_JIRA_REDIRECT_URI, "")
+        broker = WebServiceContainer.from_settings(ctx.settings, environ=ctx.environ).oauth_broker
+        return broker.exchange_authorization_code(JIRA_PROVIDER_SLUG, code, verifier, redirect_uri)
+    raw_access = str(args.access_token).strip() or ctx.environ.get(ENV_JIRA_ACCESS_TOKEN, "")
+    if not raw_access.strip():
+        raise JiraConfigurationError(
+            "Provide --access-token (or --code and --code-verifier) to log in to Jira."
+        )
+    raw_refresh = str(args.refresh_token).strip() or ctx.environ.get(ENV_JIRA_REFRESH_TOKEN, "")
+    return OAuthTokenBundle(
+        access_token=SecretValue(raw_access.strip()),
+        refresh_token=SecretValue(raw_refresh.strip()) if raw_refresh.strip() else None,
+        expires_in=args.expires_in,
+        scope=str(args.scope),
+    )
+
+
+def _handle_jira_logout(ctx: CliContext, args: argparse.Namespace) -> int:
+    """Delete stored Jira OAuth credentials from local `UserTokenStore`."""
+    account = str(args.account)
+    removed = UserTokenStore(environ=ctx.environ).delete(JIRA_PROVIDER_SLUG, account=account)
+    if ctx.as_json:
+        write_json(
+            ctx.stdout,
+            {"provider": JIRA_PROVIDER_SLUG, "account": account, "removed": removed},
+        )
+    else:
+        write_line(ctx.stdout, f"jira ({account}): logged out")
     return EXIT_SUCCESS
 
 
@@ -246,6 +288,7 @@ def _handle_jira_auth_url(ctx: CliContext, args: argparse.Namespace) -> int:
             {
                 "authorization_url": auth_url,
                 "state": state,
+                "code_verifier": pkce.code_verifier,
                 "code_challenge": pkce.code_challenge,
                 "code_challenge_method": pkce.code_challenge_method,
             },
