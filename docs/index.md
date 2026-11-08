@@ -1,37 +1,27 @@
-# Worktrack (`wt`) — Privacy-First Personal Time Ledger
+# Welcome to Worktrack (`wt`)
 
-**Worktrack** (`wt`) is a low-key, anti-surveillance personal time allocation ledger and daily/weekly planning cockpit built on Python 3.13+, SQLite / PostgreSQL, Django + Django REST Framework + `drf-spectacular`, and Vue 3 + Vuetify + `@hey-api/openapi-ts` + `pinia-orm`.
+**Worktrack (`wt`)** helps you keep track of your work hours, plan your day and week, and log time to tools like Jira — without turning your computer into a surveillance device.
 
-## Architectural Privacy Boundary
+Most time trackers force a frustrating choice: either you manually start and stop timers every time you switch tasks, or you install "automatic" activity monitors that upload every window title and keystroke to a cloud server.
 
-Worktrack enforces a strict separation between user-owned raw personal records and previewed external aggregates:
+Worktrack takes a different approach:
 
-```mermaid
-flowchart LR
-    Sensor["Collector / Sensor"] --> Clue["Local Clue"]
-    Clue --> Reconciler["Reconciler & RetroSplit"]
-    Reconciler --> Interval["Node SQLite: Interval & ContextFact"]
-    Interval --> Rollup["Aggregated Rollup"]
-    Rollup --> Outbox["Previewable Outbox Gate"]
-    Outbox --> Sink["External Sink (Jira / Calendar / Hub)"]
-    Outbox --> Ledger["Immutable EgressLedger (SHA-256)"]
-```
+1. **You own your raw timeline**: Your exact start/stop times, personal scratch notes, and local activity hints stay on your computer.
+1. **You can track live or fill in the blanks later**: Clock in and out as you work, or log a rough afternoon block and split it across tasks at the end of the day using hints from your Git commits and calendar meetings.
+1. **Nothing leaves your computer without your approval**: Before any hours are sent to Jira, your calendar, or a team server, Worktrack groups and rounds them in your **Outbox** so you can preview and approve exactly what gets shared.
 
-## Canonical Ubiquitous Language
+______________________________________________________________________
 
-| Concept                          | Responsibility                                                                          |
-| -------------------------------- | --------------------------------------------------------------------------------------- |
-| `Interval`                       | Raw recorded time span (structured clock-in/out or chaotic unallocated capture).        |
-| `Activity`                       | Work classification (*Targeted* deliverable work vs. *Standing* recurring overhead).    |
-| `Entity` & `Attribution`         | Many-to-many link attributing an `Interval` across projects, tickets, or initiatives.   |
-| `Facet` & `ContextFact`          | User-owned personal metadata (for example `workplace=home_office`) kept strictly local. |
-| `Collector` / `Sensor` -> `Clue` | Ambient local hints (Git commits, calendar events) aiding retrospective attribution.    |
-| `Reconciler` & `RetroSplit`      | Interactive splitting and attribution of chaotic or overlapping `Intervals`.            |
-| `Rollup` -> `Outbox` -> `Sink`   | Previewed aggregate payload staged before reaching any external `Sink`.                 |
-| `EgressLedger`                   | Append-only SHA-256 receipt log recording every user-approved `Outbox` flush.           |
-| `Agenda` & `FocusBlock`          | Daily/weekly capacity planning blocks optionally published as calendar busy markers.    |
-| `Node` / `Hub`                   | Personal local SQLite `Node` vs. optional shared Django/PostgreSQL `Hub` + Broker.      |
+## What You Can Do with Worktrack
 
-## Documentation Manuals
+- **Track time from your terminal or browser**: Start and stop timers in a second (`wt in`, `wt out`), see your active timer in your shell prompt, or use the keyboard-friendly web app.
+- **Plan *Right Now*, *Today*, and *This Week***: Keep a focused list of priorities for today and this week, and schedule **Focus Blocks** that can mark your work calendar as `"Focus Time"` so colleagues know when you are heads-down.
+- **Sync with Jira Cloud**: Pull the Jira issues assigned to you so you can track time against them, and push rounded worklogs back to Jira when you are ready.
+- **Generate tax-return and project reports**: Record where you worked each day (`home_office`, `office`, or `mobile_work`) — manually or automatically from your Wi-Fi/network — and export an annual summary for your tax return, or break down hours across multiple projects and customers.
 
-- **[User Guide](user/guide.md)**: End-user and developer onboarding, layered XDG and environment configuration, Jira Cloud login and sync, and CLI / cockpit workflows.
+______________________________________________________________________
+
+## Choose Your Guide
+
+- **[User Guide](user/guide.md)**: Everything you need for everyday use — tracking time, planning your week, reconciling unbooked hours, logging in to Jira Cloud, syncing calendars, and exporting reports.
+- **[Developer & Architecture Guide](developer/guide.md)**: For contributors and power users who want to explore how Worktrack works under the hood, customize advanced configuration files, or build and test the project from source.

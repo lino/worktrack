@@ -285,4 +285,5 @@ ______________________________________________________________________
 
 - **Online Manual**: [https://lino.github.io/worktrack/](https://lino.github.io/worktrack/)
 - **User Guide**: [`docs/user/guide.md`](docs/user/guide.md)
+- **Developer & Architecture Guide**: [`docs/developer/guide.md`](docs/developer/guide.md)
 - **License**: Licensed under the [Apache License, Version 2.0](LICENSE).

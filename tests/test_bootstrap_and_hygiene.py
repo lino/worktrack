@@ -416,7 +416,7 @@ def test_regions_comments_are_balanced_and_synced_with_registry() -> None:
 
 
 def test_runtime_ci_and_zensical_skeleton_present() -> None:
-    """Verify Docker, CI workflow, and Zensical user manual exist."""
+    """Verify Docker, CI workflow, and Zensical user and developer manuals exist."""
     required_rels = (
         "Dockerfile",
         "compose.yaml",
@@ -424,6 +424,7 @@ def test_runtime_ci_and_zensical_skeleton_present() -> None:
         "zensical.toml",
         "docs/index.md",
         "docs/user/guide.md",
+        "docs/developer/guide.md",
     )
     for rel in required_rels:
         assert (REPO_ROOT / rel).is_file(), f"Missing required bootstrap file: {rel}"
@@ -431,6 +432,7 @@ def test_runtime_ci_and_zensical_skeleton_present() -> None:
     zensical_cfg = tomllib.loads((REPO_ROOT / "zensical.toml").read_text(encoding="utf-8"))
     nav_serialized = json.dumps(zensical_cfg["project"]["nav"])
     assert "user/guide.md" in nav_serialized
+    assert "developer/guide.md" in nav_serialized
     assert "operations/runbook.md" not in nav_serialized
 
 
