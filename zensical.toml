@@ -6,11 +6,16 @@ site_author = "Worktrack Contributors"
 
 nav = [
   { "Overview" = "index.md" },
-  { "User Manual" = [
-    { "User Guide" = "user/guide.md" },
+  { "User Guide" = [
+    { "Quickstart & Tracking Time" = "user/guide.md" },
+    { "Planning, Focus Time & Reconciling" = "user/planning-and-reconciliation.md" },
+    { "Jira Cloud Login, Sync & Outbox" = "user/jira-and-outbox.md" },
+    { "Calendars, Work Location & Reports" = "user/calendars-and-reports.md" },
+    { "Web Cockpit, Shell Prompts, AI & Team Hub" = "user/cockpit-and-integrations.md" },
   ] },
-  { "Developer Manual" = [
-    { "Developer & Architecture Guide" = "developer/guide.md" },
+  { "Developer & Self-Hosting" = [
+    { "Architecture & Contributing" = "developer/guide.md" },
+    { "Metrics Host, Health Checks & Docker" = "developer/metrics-and-monitoring.md" },
   ] },
 ]
 

@@ -1,17 +1,18 @@
-# Developer & Architecture Guide
+# Architecture & Contributing
 
-This guide is for contributors, self-hosters, and curious users who want to understand how Worktrack (`wt`) works under the hood, customize advanced configuration files, or build and test the project from source.
+This guide is for contributors and developers who want to understand how Worktrack (`wt`) is structured internally, how its privacy guarantees are enforced in code, or how to build and test the project from source.
 
-If you just want to use Worktrack day-to-day, see the **[User Guide](../user/guide.md)**.
+- Looking for everyday usage? See the **[Quickstart & Tracking Time](../user/guide.md)** guide.
+- Looking for Prometheus metrics, health checks, or Docker setup? See **[Metrics Host, Health Checks & Docker](metrics-and-monitoring.md)**.
 
 ______________________________________________________________________
 
 ## Architecture Overview: How Privacy & Performance Work Under the Hood
 
-Worktrack is designed around three technical guarantees:
+Worktrack is built around three core mechanisms:
 
 1. **Local-First Storage (`Ledger`)**: All raw time slices (`Intervals`), notes, work-location facts (`ContextFacts`), and local activity hints (`Clues`) are stored in a local SQLite database (`WAL` mode) on your workstation.
-1. **Cryptographically Gated Outbox (`OutboxStore` & `ApprovedOutboxGrant`)**: External connectors (`JiraWorklogSink`, `CalendarFocusSink`, `GangliaHubSink`) cannot read your raw `Intervals` or transmit data on their own. First, `RollupEngine` aggregates and rounds your time into previewable `OutboxItem` proposals. Only when you approve an item does Worktrack mint a signed `ApprovedOutboxGrant` token allowing the connector to send that specific payload, recording a SHA-256 receipt in `EgressLedger`.
+1. **Approval-Gated Outbox (`OutboxStore` & `ApprovedOutboxGrant`)**: External connectors (`JiraWorklogSink`, `CalendarFocusSink`, `GangliaHubSink`) cannot read your raw `Intervals` or send data on their own. First, `RollupEngine` aggregates and rounds your time into previewable `OutboxItem` proposals. Only when you approve an item does Worktrack issue a signed `ApprovedOutboxGrant` token allowing the connector to send that specific payload, recording a SHA-256 receipt in `EgressLedger`.
 1. **Fast Shell-Prompt Helper (`worktrackd`)**: Spawning a Python interpreter on every shell prompt redraw would feel sluggish. When `wt daemon` is running, `wt status --porcelain` queries `worktrackd` over a local `0600` Unix domain socket (or loopback TCP on Windows) in under `10 ms`, and exits immediately if the daemon is stopped so your terminal never hangs.
 
 ```mermaid
@@ -44,9 +45,9 @@ flowchart LR
 
 ______________________________________________________________________
 
-## Core Domain Concepts
+## Codebase Domain Concepts
 
-When reading or contributing to the codebase (`src/worktrack/` and `frontend/src/`), you will encounter these domain terms:
+When reading or contributing to `src/worktrack/` and `frontend/src/`, you will encounter these domain models:
 
 | Term                             | What It Represents in the Codebase                                                                   |
 | -------------------------------- | ---------------------------------------------------------------------------------------------------- |
@@ -63,7 +64,7 @@ When reading or contributing to the codebase (`src/worktrack/` and `frontend/src
 
 ______________________________________________________________________
 
-## Development Setup & Build Commands
+## Development Setup, Build & Test Commands
 
 Worktrack uses:
 
@@ -89,51 +90,3 @@ mise run verify
 | `mise run verify`       | Runs both `mise run lint` and `mise run test`                                               |
 | `mise run bench`        | Runs latency benchmarks for IPC status, Outbox rollup preview, attribution DAG, and secrets |
 | `mise run docs`         | Builds the documentation site (`uvx zensical build --strict`) into `site/`                  |
-| `mise run metrics`      | Prints local Prometheus / OpenMetrics counters and histograms to standard output            |
-
-______________________________________________________________________
-
-## Configuration & Environment Variables Reference
-
-Worktrack resolves configuration across three layers (**Environment Variables** > **TOML Config File** > **XDG Base Directories**) so no file paths are ever hardcoded:
-
-| Setting                | Environment Variable                 | TOML Key (`[worktrack]`)   | Default XDG Path / Value                     |
-| ---------------------- | ------------------------------------ | -------------------------- | -------------------------------------------- |
-| Configuration File     | `WORKTRACK_CONFIG_FILE`              | *(file path)*              | `$XDG_CONFIG_HOME/worktrack/config.toml`     |
-| Local Ledger Database  | `WORKTRACK_DB_PATH`                  | `db_path`                  | `$XDG_DATA_HOME/worktrack/ledger.sqlite3`    |
-| Daemon IPC Socket      | `WORKTRACK_SOCKET_PATH`              | `socket_path`              | `$XDG_RUNTIME_DIR/worktrack/worktrackd.sock` |
-| Telemetry State Dir    | `WORKTRACK_TELEMETRY_DIR`            | `telemetry_dir`            | `$XDG_STATE_HOME/worktrack/telemetry`        |
-| Metrics HTTP Bind Host | `WORKTRACK_METRICS_HOST`             | `metrics_host`             | `127.0.0.1`                                  |
-| Metrics HTTP TCP Port  | `WORKTRACK_METRICS_PORT`             | `metrics_port`             | `9112`                                       |
-| Metrics Shutdown Wait  | `WORKTRACK_METRICS_SHUTDOWN_TIMEOUT` | `metrics_shutdown_timeout` | `5.0`                                        |
-| Deployment Topology    | `WORKTRACK_MODE`                     | `mode`                     | `node` (`node` or `hub`)                     |
-| Log Level              | `WORKTRACK_LOG_LEVEL`                | `log_level`                | `INFO`                                       |
-
-Example `$XDG_CONFIG_HOME/worktrack/config.toml`:
-
-```toml
-[worktrack]
-mode = "node"
-metrics_host = "127.0.0.1"
-metrics_port = 9112
-log_level = "INFO"
-```
-
-______________________________________________________________________
-
-## Running with Docker & Inspecting Metrics
-
-You can run Worktrack in a container using the included `Dockerfile` and `compose.yaml`:
-
-```bash
-docker compose up --build -d
-curl -fsS http://127.0.0.1:9112/healthz
-curl -fsS http://127.0.0.1:9112/metrics
-```
-
-Or inspect local Prometheus metrics directly from your checkout:
-
-```bash
-uv run python -m worktrack.telemetry
-uv run python -m worktrack.telemetry --serve --host 127.0.0.1 --port 9112
-```

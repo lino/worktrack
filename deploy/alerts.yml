@@ -1,8 +1,7 @@
-# Prometheus alerting rules for Worktrack (`wt` / `Uhrenmaschine`)
-# Every alert links to its canonical section in `docs/operations/runbook.md`.
+# Prometheus alerting rules for Worktrack (`wt`)
 
 groups:
-  - name: worktrack.uhrenmaschine.rules
+  - name: worktrack.rules
     interval: 30s
     rules:
       - alert: WorktrackIpcLatencyHigh
@@ -38,7 +37,7 @@ groups:
           kpi: KPI-WT-OUTBOX-FLUSH
         annotations:
           summary: "Worktrack Outbox Sink delivery recorded one or more flush errors"
-          description: "Approved Outbox proposal failed during Sink delivery; inspect EgressLedger and events.jsonl by FRITZ_TRACE_ID."
+          description: "Approved Outbox proposal failed during Sink delivery; inspect EgressLedger and events.jsonl."
           runbook_url: "https://worktrack.example.invalid/operations/runbook/#worktrackoutboxflushfailure"
 
       - alert: WorktrackEgressBypassDetected

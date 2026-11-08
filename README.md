@@ -284,6 +284,13 @@ ______________________________________________________________________
 ## Documentation & License
 
 - **Online Manual**: [https://lino.github.io/worktrack/](https://lino.github.io/worktrack/)
-- **User Guide**: [`docs/user/guide.md`](docs/user/guide.md)
-- **Developer & Architecture Guide**: [`docs/developer/guide.md`](docs/developer/guide.md)
+- **User Guides**:
+  - [Quickstart & Tracking Time](docs/user/guide.md)
+  - [Planning, Focus Time & Reconciling Your Day](docs/user/planning-and-reconciliation.md)
+  - [Jira Cloud Login, Sync & Outbox](docs/user/jira-and-outbox.md)
+  - [Calendars, Work Location & Reports](docs/user/calendars-and-reports.md)
+  - [Web Cockpit, Shell Prompts, AI & Team Hub](docs/user/cockpit-and-integrations.md)
+- **Developer & Self-Hosting Guides**:
+  - [Architecture & Contributing](docs/developer/guide.md)
+  - [Metrics Host, Health Checks & Docker](docs/developer/metrics-and-monitoring.md)
 - **License**: Licensed under the [Apache License, Version 2.0](LICENSE).
