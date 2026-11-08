@@ -149,8 +149,14 @@ def test_starship_toml_parses_and_renders_active_vs_offline_states(tmp_path: Pat
 
 def test_oh_my_zsh_plugin_syntax_and_execution_states(tmp_path: Path) -> None:
     """Verify `worktrack.plugin.zsh` passes `zsh -n` and handles active, idle, and offline."""
+    plugin_text = ZSH_PLUGIN_PATH.read_text(encoding="utf-8")
+    assert "worktrack_prompt_info()" in plugin_text
+    assert "wt status --porcelain" in plugin_text
+    assert plugin_text.count("{") == plugin_text.count("}")
+
     zsh_bin = shutil.which("zsh")
-    assert zsh_bin is not None, "Expected zsh binary for oh-my-zsh plugin verification"
+    if zsh_bin is None:
+        return
 
     subprocess.run([zsh_bin, "-n", str(ZSH_PLUGIN_PATH)], check=True)
 

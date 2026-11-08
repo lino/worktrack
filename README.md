@@ -173,9 +173,9 @@ ______________________________________________________________________
 
 `wt status --porcelain` queries `worktrackd` over a `0600` Unix domain socket (or authenticated loopback TCP on Windows) and exits in `< 15 ms` with an empty output when `worktrackd` is offline so your shell prompt never hangs:
 
-- **`starship.rs`**: Copy [`shell/starship/starship.worktrack.toml`](shell/starship/starship.worktrack.toml) into `$XDG_CONFIG_HOME/starship.toml`.
-- **`oh-my-zsh`**: Source [`shell/zsh/worktrack.plugin.zsh`](shell/zsh/worktrack.plugin.zsh) and add `$(worktrack_prompt_info)` to `PROMPT` or `RPROMPT`.
-- **PowerShell**: `Import-Module ./shell/powershell/WorktrackPrompt.psm1`.
+- **`starship.rs`**: Copy [`shell/starship.toml`](shell/starship.toml) into `$XDG_CONFIG_HOME/starship.toml`.
+- **`oh-my-zsh`**: Source [`shell/worktrack.plugin.zsh`](shell/worktrack.plugin.zsh) and add `$(worktrack_prompt_info)` to `PROMPT` or `RPROMPT`.
+- **PowerShell**: `Import-Module ./shell/WorktrackPrompt.psm1`.
 
 ______________________________________________________________________
 
