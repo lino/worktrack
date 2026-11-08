@@ -3,6 +3,7 @@ mise.local.toml
 .fritz.local.toml
 .regions.md
 .cache/
+.benchmarks/
 
 # Python & uv
 __pycache__/

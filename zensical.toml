@@ -1,5 +1,5 @@
 [project]
-site_url = "https://worktrack.example.invalid/"
+site_url = "https://lino.github.io/worktrack/"
 site_name = "Worktrack (wt) Documentation"
 site_description = "Anti-surveillance personal time ledger, Outbox rollup gateway, and planning cockpit."
 site_author = "Worktrack Contributors"

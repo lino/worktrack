@@ -6,8 +6,9 @@ build-backend = "hatchling.build"
 name = "worktrack"
 version = "0.1.0"
 description = "Low-key, anti-surveillance personal time ledger and planning cockpit."
+readme = "README.md"
 requires-python = ">=3.13"
-license = { text = "MIT" }
+license = { text = "Apache-2.0" }
 authors = [{ name = "Worktrack Contributors" }]
 dependencies = [
     "django>=5.1,<6.0",
@@ -15,6 +16,12 @@ dependencies = [
     "drf-spectacular>=0.28.0",
     "prometheus-client>=0.21.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/lino/worktrack"
+Documentation = "https://lino.github.io/worktrack/"
+Repository = "https://github.com/lino/worktrack.git"
+Issues = "https://github.com/lino/worktrack/issues"
 
 [project.scripts]
 wt = "worktrack.cli:main"
