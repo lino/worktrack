@@ -11,7 +11,8 @@ nav = [
     { "Planning, Focus Time & Reconciling" = "user/planning-and-reconciliation.md" },
     { "Jira Cloud Login, Sync & Outbox" = "user/jira-and-outbox.md" },
     { "Calendars, Work Location & Reports" = "user/calendars-and-reports.md" },
-    { "Web Cockpit, Shell Prompts, AI & Team Hub" = "user/cockpit-and-integrations.md" },
+    { "MCP Server for AI Assistants" = "user/mcp-server.md" },
+    { "Web Cockpit, Shell Prompts & Team Hub" = "user/cockpit-and-integrations.md" },
   ] },
   { "Developer & Self-Hosting" = [
     { "Architecture & Contributing" = "developer/guide.md" },

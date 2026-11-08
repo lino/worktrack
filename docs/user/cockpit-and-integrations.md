@@ -1,6 +1,8 @@
-# Web Cockpit, Shell Prompts, AI & Team Hub
+# Web Cockpit, Shell Prompts & Team Hub
 
-Beyond the `wt` command line, Worktrack includes four optional ways to interact with your schedule and team: a keyboard-driven **Web Cockpit**, **Shell Prompt plugins**, a local **AI Assistant connector (`wt mcp`)**, and **Team Hub sync (`wt hub`)**.
+Beyond the `wt` command line, Worktrack includes a keyboard-driven **Web Cockpit**, **Shell Prompt plugins**, and **Team Hub sync (`wt hub`)**.
+
+*(Looking to connect an AI assistant like Claude or Cursor? See the dedicated **[MCP Server for AI Assistants](mcp-server.md)** chapter.)*
 
 ______________________________________________________________________
 
@@ -65,24 +67,7 @@ Then add the snippet for your shell from the `shell/` directory:
 
 ______________________________________________________________________
 
-## 3. Connecting Local AI Assistants (`wt mcp`)
-
-### Why use it?
-
-If you use an AI assistant or editor that supports the **Model Context Protocol (MCP)**, you can connect it to Worktrack to ask natural-language questions like *"How much time did I spend on PROJ-142 this week?"* or *"Propose a time split for my afternoon block based on my Git commits"*.
-
-### How it protects your privacy
-
-The MCP server allows the AI assistant to read your local schedule and stage draft proposals into your **Outbox**, but it **blocks any attempt to send data directly to Jira, your calendar, or a Team Hub**. You always review and approve Outbox items yourself.
-
-```bash
-# Start the MCP server over standard input/output for your AI client
-wt mcp
-```
-
-______________________________________________________________________
-
-## 4. Syncing with a Shared Team Hub (`wt hub`)
+## 3. Syncing with a Shared Team Hub (`wt hub`)
 
 ### Why use it?
 

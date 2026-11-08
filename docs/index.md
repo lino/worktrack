@@ -22,7 +22,8 @@ So you only have to read about the features you actually want to use, the docume
 - **[Planning, Focus Time & Reconciling Your Day](user/planning-and-reconciliation.md)**: Plan *Today* and *This Week*, block out uninterrupted focus time, and use local Git hints to split unbooked hours.
 - **[Jira Cloud Login, Sync & Outbox](user/jira-and-outbox.md)**: Log in to Jira Cloud, pull your assigned issues, and preview/approve rounded worklogs before sending them.
 - **[Calendars, Work Location & Reports](user/calendars-and-reports.md)**: Import calendar meetings, track `home_office` / `office` / `mobile_work` days, link tasks to projects or customers, and export annual tax or project reports.
-- **[Web Cockpit, Shell Prompts, AI & Team Hub](user/cockpit-and-integrations.md)**: Use the keyboard-driven web interface, show your active timer in your shell prompt, connect a local AI assistant (`wt mcp`), or pull shared project lists from a Team Hub (`wt hub`).
+- **[MCP Server for AI Assistants](user/mcp-server.md)**: Connect Claude Desktop, Cursor, or other MCP clients to query your schedule and draft Outbox proposals without risking accidental external writes.
+- **[Web Cockpit, Shell Prompts & Team Hub](user/cockpit-and-integrations.md)**: Use the keyboard-driven web interface, show your active timer in your shell prompt, or pull shared project lists from a Team Hub (`wt hub`).
 
 ### Developer & Self-Hosting Guides
 

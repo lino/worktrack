@@ -289,7 +289,8 @@ ______________________________________________________________________
   - [Planning, Focus Time & Reconciling Your Day](docs/user/planning-and-reconciliation.md)
   - [Jira Cloud Login, Sync & Outbox](docs/user/jira-and-outbox.md)
   - [Calendars, Work Location & Reports](docs/user/calendars-and-reports.md)
-  - [Web Cockpit, Shell Prompts, AI & Team Hub](docs/user/cockpit-and-integrations.md)
+  - [MCP Server for AI Assistants](docs/user/mcp-server.md)
+  - [Web Cockpit, Shell Prompts & Team Hub](docs/user/cockpit-and-integrations.md)
 - **Developer & Self-Hosting Guides**:
   - [Architecture & Contributing](docs/developer/guide.md)
   - [Metrics Host, Health Checks & Docker](docs/developer/metrics-and-monitoring.md)

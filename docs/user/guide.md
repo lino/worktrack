@@ -73,22 +73,22 @@ ______________________________________________________________________
 
 Add `--json` to any command if you want machine-readable JSON output for scripts.
 
-| Goal                             | Command                          | Guide                                                                    |
-| -------------------------------- | -------------------------------- | ------------------------------------------------------------------------ |
-| Start / stop a live timer        | `wt in` / `wt out`               | This page                                                                |
-| Log or split past time blocks    | `wt log` / `wt split`            | This page                                                                |
-| Assign an unallocated block      | `wt bind`                        | This page                                                                |
-| Check now / today / this week    | `wt now` / `wt today`            | This page                                                                |
-| Plan today / week & focus blocks | `wt plan` / `wt focus`           | [Planning, Focus Time & Reconciling](planning-and-reconciliation.md)     |
-| Scan Git commits for task hints  | `wt clue`                        | [Planning, Focus Time & Reconciling](planning-and-reconciliation.md)     |
-| Reconcile unbooked time blocks   | `wt reconcile`                   | [Planning, Focus Time & Reconciling](planning-and-reconciliation.md)     |
-| Log in & sync with Jira Cloud    | `wt jira`                        | [Jira Cloud Login, Sync & Outbox](jira-and-outbox.md)                    |
-| Preview & send approved hours    | `wt outbox`                      | [Jira Cloud Login, Sync & Outbox](jira-and-outbox.md)                    |
-| Import calendar or publish focus | `wt calendar`                    | [Calendars, Work Location & Reports](calendars-and-reports.md)           |
-| Log or auto-detect work location | `wt fact` / `wt sensor evaluate` | [Calendars, Work Location & Reports](calendars-and-reports.md)           |
-| Group tasks by project/customer  | `wt entity` / `wt attr`          | [Calendars, Work Location & Reports](calendars-and-reports.md)           |
-| Export tax or project reports    | `wt export`                      | [Calendars, Work Location & Reports](calendars-and-reports.md)           |
-| Launch the web app               | `wt serve`                       | [Web Cockpit, Shell Prompts, AI & Team Hub](cockpit-and-integrations.md) |
-| Show active timer in prompt      | `wt daemon` / `wt status`        | [Web Cockpit, Shell Prompts, AI & Team Hub](cockpit-and-integrations.md) |
-| Connect a local AI assistant     | `wt mcp`                         | [Web Cockpit, Shell Prompts, AI & Team Hub](cockpit-and-integrations.md) |
-| Sync shared team project catalog | `wt hub`                         | [Web Cockpit, Shell Prompts, AI & Team Hub](cockpit-and-integrations.md) |
+| Goal                             | Command                          | Guide                                                                |
+| -------------------------------- | -------------------------------- | -------------------------------------------------------------------- |
+| Start / stop a live timer        | `wt in` / `wt out`               | This page                                                            |
+| Log or split past time blocks    | `wt log` / `wt split`            | This page                                                            |
+| Assign an unallocated block      | `wt bind`                        | This page                                                            |
+| Check now / today / this week    | `wt now` / `wt today`            | This page                                                            |
+| Plan today / week & focus blocks | `wt plan` / `wt focus`           | [Planning, Focus Time & Reconciling](planning-and-reconciliation.md) |
+| Scan Git commits for task hints  | `wt clue`                        | [Planning, Focus Time & Reconciling](planning-and-reconciliation.md) |
+| Reconcile unbooked time blocks   | `wt reconcile`                   | [Planning, Focus Time & Reconciling](planning-and-reconciliation.md) |
+| Log in & sync with Jira Cloud    | `wt jira`                        | [Jira Cloud Login, Sync & Outbox](jira-and-outbox.md)                |
+| Preview & send approved hours    | `wt outbox`                      | [Jira Cloud Login, Sync & Outbox](jira-and-outbox.md)                |
+| Import calendar or publish focus | `wt calendar`                    | [Calendars, Work Location & Reports](calendars-and-reports.md)       |
+| Log or auto-detect work location | `wt fact` / `wt sensor evaluate` | [Calendars, Work Location & Reports](calendars-and-reports.md)       |
+| Group tasks by project/customer  | `wt entity` / `wt attr`          | [Calendars, Work Location & Reports](calendars-and-reports.md)       |
+| Export tax or project reports    | `wt export`                      | [Calendars, Work Location & Reports](calendars-and-reports.md)       |
+| Launch the web app               | `wt serve`                       | [Web Cockpit, Shell Prompts & Team Hub](cockpit-and-integrations.md) |
+| Show active timer in prompt      | `wt daemon` / `wt status`        | [Web Cockpit, Shell Prompts & Team Hub](cockpit-and-integrations.md) |
+| Connect a local AI assistant     | `wt mcp`                         | [MCP Server for AI Assistants](mcp-server.md)                        |
+| Sync shared team project catalog | `wt hub`                         | [Web Cockpit, Shell Prompts & Team Hub](cockpit-and-integrations.md) |
