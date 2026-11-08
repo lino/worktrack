@@ -34,5 +34,4 @@ flowchart LR
 
 ## Documentation Manuals
 
-- **[User Guide](user/guide.md)**: Developer and end-user onboarding, layered XDG and environment configuration, `Schaltwerk` workflow routing, and CLI telemetry usage.
-- **[Operations Runbook](operations/runbook.md)**: Hub and `Freigabeamt` governance, `Uhrenmaschine` Prometheus metrics and alert triage, `FRITZ_TRACE_ID` structured logging, Secret Isolation (`PROB-WT-001`), and Docker runtime operations.
+- **[User Guide](user/guide.md)**: End-user and developer onboarding, layered XDG and environment configuration, Jira Cloud login and sync, and CLI / cockpit workflows.

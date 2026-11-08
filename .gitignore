@@ -4,6 +4,7 @@ mise.local.toml
 .regions.md
 .cache/
 .benchmarks/
+docs/operations/
 
 # Python & uv
 __pycache__/

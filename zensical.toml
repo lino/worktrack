@@ -9,9 +9,6 @@ nav = [
   { "User Manual" = [
     { "User Guide" = "user/guide.md" },
   ] },
-  { "Operations Manual" = [
-    { "Operations Runbook" = "operations/runbook.md" },
-  ] },
 ]
 
 [project.theme]

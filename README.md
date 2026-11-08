@@ -285,5 +285,4 @@ ______________________________________________________________________
 
 - **Online Manual**: [https://lino.github.io/worktrack/](https://lino.github.io/worktrack/)
 - **User Guide**: [`docs/user/guide.md`](docs/user/guide.md)
-- **Operations & Self-Hosting Runbook**: [`docs/operations/runbook.md`](docs/operations/runbook.md)
 - **License**: Licensed under the [Apache License, Version 2.0](LICENSE).
