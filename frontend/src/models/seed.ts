@@ -21,6 +21,7 @@ import {
   ReconcileProposalModel,
   SensorSuggestionModel,
 } from './reconciler_and_exports';
+import { seedReportingAndAbsences } from './reporting';
 
 /**
  * Seed default `Activity` records into `pinia-orm`.
@@ -408,4 +409,5 @@ export function seedCockpitDemoState(): void {
   seedCluesAndSensors();
   seedReconcilerProposals();
   seedExportReports();
+  seedReportingAndAbsences();
 }

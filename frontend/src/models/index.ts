@@ -20,4 +20,11 @@ export {
   ReconcileProposalModel,
   SensorSuggestionModel,
 } from './reconciler_and_exports';
+export {
+  AbsenceEntryModel,
+  ReportingPackModel,
+  seedReportingAndAbsences,
+  TravelTripModel,
+  VacationSummaryModel,
+} from './reporting';
 export { seedCockpitDemoState } from './seed';

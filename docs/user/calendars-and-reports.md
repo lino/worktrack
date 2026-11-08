@@ -98,3 +98,5 @@ wt export attribution \
   --end 2026-11-08T00:00:00Z \
   --format csv
 ```
+
+For jurisdiction-specific tax deduction rules (such as Germany's Homeoffice-Pauschale and Entfernungspauschale), vacation and public holiday exclusions, and business travel allowances (*Reisekosten* & *Verpflegungsmehraufwand*), see the dedicated [Tax Packs, Travel (Reisekosten) & Vacation (Urlaub)](reporting-travel-and-vacation.md) guide.

@@ -11,6 +11,7 @@ nav = [
     { "Planning, Focus Time & Reconciling" = "user/planning-and-reconciliation.md" },
     { "Jira Cloud Login, Sync & Outbox" = "user/jira-and-outbox.md" },
     { "Calendars, Work Location & Reports" = "user/calendars-and-reports.md" },
+    { "Tax Packs, Travel (Reisekosten) & Vacation (Urlaub)" = "user/reporting-travel-and-vacation.md" },
     { "MCP Server for AI Assistants" = "user/mcp-server.md" },
     { "Web Cockpit, Shell Prompts & Team Hub" = "user/cockpit-and-integrations.md" },
   ] },

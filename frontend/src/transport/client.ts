@@ -4,26 +4,13 @@
  */
 import { useRepo } from 'pinia-orm';
 import type {
-  ActivitySchema,
-  AgendaItemSchema,
-  AttributionSchema,
-  ClueListSchema,
-  ClueSchema,
-  ClueSyncResultSchema,
-  ContextFactSchema,
-  EgressRecordSchema,
-  EntityAttributionExportResponseSchema,
-  EntitySchema,
-  FocusBlockSchema,
-  IntervalSchema,
-  OutboxItemSchema,
-  ReconcilerProposeRequestSchema,
-  ReconcilerProposeResponseSchema,
-  RetroSplitApplyResultSchema,
-  RetroSplitProposalSchema,
-  SensorEvaluateRequestSchema,
-  SensorEvaluationResultSchema,
-  WorkplaceTaxExportResponseSchema,
+  ActivitySchema, AgendaItemSchema, AttributionSchema, ClueListSchema,
+  ClueSchema, ClueSyncResultSchema, ContextFactSchema, EgressRecordSchema,
+  EntityAttributionExportResponseSchema, EntitySchema, FocusBlockSchema, IntervalSchema,
+  OutboxItemSchema, ReconcilerProposeRequestSchema, ReconcilerProposeResponseSchema,
+  ReportingPackListResponseSchema, ReportingPackSchema, RetroSplitApplyResultSchema,
+  RetroSplitProposalSchema, SensorEvaluateRequestSchema, SensorEvaluationResultSchema,
+  TravelTripListResponseSchema, VacationSummarySchema, WorkplaceTaxExportResponseSchema,
 } from '../api/generated';
 import {
   API_ROUTES,
@@ -32,19 +19,10 @@ import {
   HTTP_STATUS_BOUNDS,
 } from '../config/constants';
 import {
-  ActivityModel,
-  AgendaItemModel,
-  AttributionModel,
-  ClueModel,
-  ContextFactModel,
-  EgressReceiptModel,
-  EntityModel,
-  ExportReportModel,
-  FocusBlockModel,
-  IntervalModel,
-  OutboxItemModel,
-  ReconcileProposalModel,
-  SensorSuggestionModel,
+  ActivityModel, AgendaItemModel, AttributionModel, ClueModel,
+  ContextFactModel, EgressReceiptModel, EntityModel, ExportReportModel,
+  FocusBlockModel, IntervalModel, OutboxItemModel, ReconcileProposalModel,
+  ReportingPackModel, SensorSuggestionModel, TravelTripModel, VacationSummaryModel,
 } from '../models';
 
 /** Bounded frontend API transport telemetry snapshot. */
@@ -379,6 +357,66 @@ export class WorktrackTransportClient {
       report: result.report as unknown as Record<string, unknown>,
       updated_at: new Date().toISOString(),
     });
+    return result;
+  }
+
+  /**
+   * Fetch available reporting packs via `GET /api/v1/reporting/packs/` and normalize into `ReportingPackModel`.
+   */
+  async fetchReportingPacks(): Promise<ReportingPackSchema[]> {
+    const response = await this.requestJson<ReportingPackListResponseSchema>(
+      API_ROUTES.reportingPacks,
+    );
+    useRepo(ReportingPackModel).save(response.packs);
+    return response.packs;
+  }
+
+  /**
+   * Fetch consolidated vacation summary via `GET /api/v1/reporting/absences/summary/`.
+   * @param year Four-digit calendar year.
+   * @param subdivision Jurisdiction subdivision code (default `DE-BY`).
+   */
+  async fetchVacationSummary(
+    year: number,
+    subdivision = 'DE-BY',
+  ): Promise<VacationSummarySchema> {
+    const query = `?year=${encodeURIComponent(String(year))}&subdivision=${encodeURIComponent(subdivision)}`;
+    const result = await this.requestJson<VacationSummarySchema>(
+      API_ROUTES.reportingAbsenceSummary,
+      {},
+      query,
+    );
+    useRepo(VacationSummaryModel).save(result);
+    return result;
+  }
+
+  /**
+   * Fetch business travel trips and statutory allowances via `GET /api/v1/reporting/travel-trips/`.
+   * @param pack Reporting pack identifier (default `de`).
+   */
+  async fetchTravelTrips(pack = 'de'): Promise<TravelTripListResponseSchema> {
+    const query = `?pack=${encodeURIComponent(pack)}`;
+    const result = await this.requestJson<TravelTripListResponseSchema>(
+      API_ROUTES.reportingTravelTrips,
+      {},
+      query,
+    );
+    const trips = result.trips.map((calc) => ({
+      id: calc.trip.id,
+      title: calc.trip.title,
+      destination: calc.trip.destination,
+      country_code: calc.trip.country_code,
+      started_at: calc.trip.started_at,
+      ended_at: calc.trip.ended_at,
+      transport_mode: calc.trip.transport_mode,
+      distance_km: calc.trip.distance_km,
+      net_per_diem_total: calc.net_per_diem_total,
+      mileage_allowance: calc.mileage_allowance,
+      total_reimbursement: calc.total_reimbursement,
+      currency: calc.currency,
+      notes: calc.trip.notes,
+    }));
+    useRepo(TravelTripModel).save(trips);
     return result;
   }
 }

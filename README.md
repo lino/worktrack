@@ -34,9 +34,11 @@ ______________________________________________________________________
 - **Three clear horizons**: See what is on your plate for **Right Now**, **Today**, and **This Week** (`wt now`, `wt today`, `wt week`).
 - **Calendar focus blocks**: Schedule deep-work windows (`wt agenda focus`) and optionally publish them to your work calendar as simple `"Focus Time"` busy slots — so colleagues know you are heads-down without seeing your internal task notes.
 
-### 🏠 Effortless home-office & project reports
+### 🏠 Effortless home-office, travel & project reports
 
 - **Work-location tracking for tax returns**: Log whether you worked from `home_office`, `office`, or `mobile_work` each day — either with `wt fact set workplace=home_office` or automatically based on your local Wi-Fi, network subnet, VPN, or connected monitors. Export a ready-to-file annual summary (`Markdown`, `CSV`, or `JSON`) at tax time.
+- **Statutory Reporting Packs & Vacation Tracking**: Configure country-specific tax rules (`de` Germany EStG Homeoffice-Pauschale and Entfernungspauschale, or country-neutral `generic`). Track annual vacation (*Urlaub*) and public holidays (*Feiertage*) across all 16 German states to avoid double-counting on your tax return.
+- **Business Travel & Meal Allowances**: Record business trips (`wt travel add`) with automated German statutory per-diem rates (*Verpflegungsmehraufwand*), statutory meal deductions, and car mileage (*Reisekosten*).
 - **Multi-project & customer breakdowns**: Link tasks across projects, components, customers, epics, and cost centers (for example, splitting a shared platform task 60% / 40% between two products) and export clean time reports.
 
 ### ⚡ Always visible in your shell prompt
@@ -289,6 +291,7 @@ ______________________________________________________________________
   - [Planning, Focus Time & Reconciling Your Day](docs/user/planning-and-reconciliation.md)
   - [Jira Cloud Login, Sync & Outbox](docs/user/jira-and-outbox.md)
   - [Calendars, Work Location & Reports](docs/user/calendars-and-reports.md)
+  - [Tax Packs, Travel (Reisekosten) & Vacation (Urlaub)](docs/user/reporting-travel-and-vacation.md)
   - [MCP Server for AI Assistants](docs/user/mcp-server.md)
   - [Web Cockpit, Shell Prompts & Team Hub](docs/user/cockpit-and-integrations.md)
 - **Developer & Self-Hosting Guides**:

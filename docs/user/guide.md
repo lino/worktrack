@@ -88,6 +88,9 @@ Add `--json` to any command if you want machine-readable JSON output for scripts
 | Log or auto-detect work location | `wt fact` / `wt sensor evaluate` | [Calendars, Work Location & Reports](calendars-and-reports.md)       |
 | Group tasks by project/customer  | `wt entity` / `wt attr`          | [Calendars, Work Location & Reports](calendars-and-reports.md)       |
 | Export tax or project reports    | `wt export`                      | [Calendars, Work Location & Reports](calendars-and-reports.md)       |
+| Track vacation, leave & holidays | `wt absence`                     | [Tax Packs, Travel & Vacation](reporting-travel-and-vacation.md)     |
+| Record business travel & meals   | `wt travel`                      | [Tax Packs, Travel & Vacation](reporting-travel-and-vacation.md)     |
+| Generate statutory tax reports   | `wt report`                      | [Tax Packs, Travel & Vacation](reporting-travel-and-vacation.md)     |
 | Launch the web app               | `wt serve`                       | [Web Cockpit, Shell Prompts & Team Hub](cockpit-and-integrations.md) |
 | Show active timer in prompt      | `wt daemon` / `wt status`        | [Web Cockpit, Shell Prompts & Team Hub](cockpit-and-integrations.md) |
 | Connect a local AI assistant     | `wt mcp`                         | [MCP Server for AI Assistants](mcp-server.md)                        |

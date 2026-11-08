@@ -39,6 +39,13 @@ export const API_ROUTES = {
   hubCatalog: '/api/v1/hub/catalog/',
   exportsWorkplaceTax: '/api/v1/exports/workplace-tax/',
   exportsEntityAttribution: '/api/v1/exports/entity-attribution/',
+  reportingPacks: '/api/v1/reporting/packs/',
+  reportingHolidays: '/api/v1/reporting/holidays/',
+  reportingAbsences: '/api/v1/reporting/absences/',
+  reportingAbsenceQuota: '/api/v1/reporting/absences/quota/',
+  reportingAbsenceSummary: '/api/v1/reporting/absences/summary/',
+  reportingTravelTrips: '/api/v1/reporting/travel-trips/',
+  reportingSummary: '/api/v1/reporting/summary/',
 } as const;
 
 /** Cockpit navigation view identifiers. */

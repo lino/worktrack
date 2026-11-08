@@ -1,8 +1,8 @@
 <script setup lang="ts">
 /**
- * Tax & Multi-Entity Attribution Exports Cockpit View.
- * Renders annual `workplace` tax-return tallies (`home_office`, `office`, `mobile_work`)
- * and weighted multi-entity `Attribution` statements with `CSV`, `JSON`, and `Markdown` previews.
+ * Tax, Reporting Packs, Travel & Multi-Entity Attribution Exports Cockpit View.
+ * Renders annual `workplace` tax-return tallies, statutory reporting pack selection,
+ * vacation/absence balance, business travel expense calculations, and multi-entity statements.
  */
 import { useRepo } from 'pinia-orm';
 import { computed, ref } from 'vue';
@@ -12,9 +12,25 @@ import {
   ContextFactModel,
   ExportReportModel,
   IntervalModel,
+  ReportingPackModel,
+  TravelTripModel,
+  VacationSummaryModel,
 } from '../models';
 
 const selectedFormat = ref<'markdown' | 'csv' | 'json'>('markdown');
+const selectedPack = ref<'de' | 'generic'>('de');
+
+const activePack = computed(() =>
+  useRepo(ReportingPackModel).find(selectedPack.value),
+);
+
+const vacationSummary = computed(() =>
+  useRepo(VacationSummaryModel).where('year', 2026).first(),
+);
+
+const travelTrips = computed(() =>
+  useRepo(TravelTripModel).all(),
+);
 
 const workplaceFacts = computed(() =>
   useRepo(ContextFactModel)
@@ -41,6 +57,114 @@ const activePreviewText = computed(() => {
     <h2 id="exports-hub-heading">Tax &amp; Multi-Entity Attribution Exports</h2>
 
     <div class="cockpit-grid">
+      <article class="cockpit-card" aria-labelledby="reporting-pack-title">
+        <h3 id="reporting-pack-title">Jurisdiction Reporting Pack</h3>
+        <form class="cockpit-form" @submit.prevent>
+          <fieldset>
+            <legend>Select Jurisdiction Reporting Pack</legend>
+            <div class="radio-group">
+              <label for="reporting-pack-de">
+                <input
+                  id="reporting-pack-de"
+                  v-model="selectedPack"
+                  type="radio"
+                  name="reporting_pack"
+                  value="de"
+                />
+                Germany (EStG / Reisekostenrecht)
+              </label>
+              <label for="reporting-pack-generic">
+                <input
+                  id="reporting-pack-generic"
+                  v-model="selectedPack"
+                  type="radio"
+                  name="reporting_pack"
+                  value="generic"
+                />
+                Generic Standard (Country-Neutral)
+              </label>
+            </div>
+          </fieldset>
+        </form>
+        <div v-if="activePack" class="pack-status-banner">
+          <p v-if="activePack.tax_rules_enabled">
+            Statutory allowances active:
+            <strong>{{ activePack.home_office_daily_rate.toFixed(2) }} {{ activePack.currency }}/day</strong>
+            Homeoffice-Pauschale (max {{ activePack.home_office_max_days }} days),
+            <strong>{{ activePack.commute_first_tier_rate.toFixed(2) }}/{{ activePack.commute_second_tier_rate.toFixed(2) }} {{ activePack.currency }}/km</strong>
+            Entfernungspauschale.
+          </p>
+          <p v-else>
+            Country-neutral generic pack active: statutory tax deduction rules and per-diem calculation rates are disabled.
+          </p>
+        </div>
+      </article>
+
+      <article class="cockpit-card" aria-labelledby="vacation-summary-title">
+        <h3 id="vacation-summary-title">Vacation (Urlaub) &amp; Public Holidays (Feiertage) Summary</h3>
+        <div v-if="vacationSummary" class="vacation-quota-metrics">
+          <dl class="quota-list">
+            <div>
+              <dt>Entitlement Days:</dt>
+              <dd>{{ vacationSummary.entitlement_days }}</dd>
+            </div>
+            <div>
+              <dt>Carryover Days:</dt>
+              <dd>{{ vacationSummary.carryover_days }}</dd>
+            </div>
+            <div>
+              <dt>Taken Vacation Days:</dt>
+              <dd>{{ vacationSummary.taken_vacation_days }}</dd>
+            </div>
+            <div>
+              <dt>Planned Vacation Days:</dt>
+              <dd>{{ vacationSummary.planned_vacation_days }}</dd>
+            </div>
+            <div>
+              <dt>Remaining Vacation Days (Resturlaub):</dt>
+              <dd><strong>{{ vacationSummary.remaining_vacation_days }}</strong></dd>
+            </div>
+            <div>
+              <dt>Weekday Public Holidays ({{ vacationSummary.subdivision }}):</dt>
+              <dd>{{ vacationSummary.weekday_public_holiday_count }}</dd>
+            </div>
+          </dl>
+        </div>
+
+        <div
+          tabindex="0"
+          role="region"
+          aria-labelledby="travel-table-caption"
+          class="table-wrapper"
+        >
+          <table class="responsive-data-table">
+            <caption id="travel-table-caption">
+              Business Travel (Reisekosten &amp; Verpflegungsmehraufwand)
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Trip Title</th>
+                <th scope="col">Destination</th>
+                <th scope="col">Dates</th>
+                <th scope="col">Net Per-Diem</th>
+                <th scope="col">Mileage</th>
+                <th scope="col">Total Reimbursement</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="trip in travelTrips" :key="trip.id">
+                <th scope="row">{{ trip.title }}</th>
+                <td>{{ trip.destination }} ({{ trip.country_code }})</td>
+                <td>{{ trip.started_at.slice(0, 10) }} – {{ trip.ended_at.slice(0, 10) }}</td>
+                <td>{{ trip.net_per_diem_total.toFixed(2) }} {{ trip.currency }}</td>
+                <td>{{ trip.mileage_allowance.toFixed(2) }} {{ trip.currency }}</td>
+                <td><strong>{{ trip.total_reimbursement.toFixed(2) }} {{ trip.currency }}</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+
       <article class="cockpit-card" aria-labelledby="tax-tally-title">
         <h3 id="tax-tally-title">Annual Workplace Tax-Return Tally</h3>
         <div

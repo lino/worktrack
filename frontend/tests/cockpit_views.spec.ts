@@ -155,6 +155,30 @@ describe('Duration formatting and Cockpit Views', () => {
     wrapper.unmount();
   });
 
+  it('switches reporting pack between de and generic and renders Resturlaub and Reisekosten travel trips', async () => {
+    const wrapper = mount(App, { attachTo: document.body });
+    await wrapper.find('[data-testid="nav-exports"]').trigger('click');
+
+    expect(wrapper.text()).toContain('Vacation (Urlaub) & Public Holidays (Feiertage) Summary');
+    expect(wrapper.text()).toContain('Resturlaub');
+    expect(wrapper.text()).toContain('17');
+    expect(wrapper.text()).toContain('Architecture Summit Berlin');
+    expect(wrapper.text()).toContain('50.4');
+    expect(wrapper.text()).toContain('Homeoffice-Pauschale');
+
+    const genericPackRadio = wrapper.find('input[name="reporting_pack"][value="generic"]');
+    expect(genericPackRadio.exists()).toBe(true);
+    await genericPackRadio.setValue('generic');
+    expect(wrapper.text()).toContain('Country-neutral generic pack active');
+
+    const dePackRadio = wrapper.find('input[name="reporting_pack"][value="de"]');
+    expect(dePackRadio.exists()).toBe(true);
+    await dePackRadio.setValue('de');
+    expect(wrapper.text()).toContain('Homeoffice-Pauschale');
+
+    wrapper.unmount();
+  });
+
   it('verifies deploy/alerts.yml alert rules and Wave 2-4 Zensical User manual coverage', () => {
     const anchorMatches = [...alertsYaml.matchAll(/runbook_url:\s*"[^"#]+#([a-z0-9_-]+)"/g)];
     expect(anchorMatches.length).toBe(6);
