@@ -22,10 +22,14 @@ MIN_TCP_PORT = 1
 MAX_TCP_PORT = 65535
 MIN_POSITIVE_LIMIT = 1
 MIN_POSITIVE_TIMEOUT = 0.0
+MIN_NON_NEGATIVE_DISTANCE = 0.0
 DEFAULT_LOG_LEVEL = "INFO"
 DEFAULT_DEPLOYMENT_MODE = "node"
 DEFAULT_MAX_LABEL_VALUES = 20
 DEFAULT_MAX_SERIES_PER_METRIC = 500
+DEFAULT_REPORTING_PACK = "generic"
+DEFAULT_HOLIDAY_SUBDIVISION = ""
+DEFAULT_OFFICE_ONE_WAY_KM = 0.0
 
 ALLOWED_DEPLOYMENT_MODES = frozenset({"node", "hub"})
 ALLOWED_LOG_LEVELS = frozenset({"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"})
@@ -51,6 +55,9 @@ ENV_LOG_LEVEL = "WORKTRACK_LOG_LEVEL"
 ENV_MODE = "WORKTRACK_MODE"
 ENV_MAX_LABEL_VALUES = "WORKTRACK_MAX_LABEL_VALUES"
 ENV_MAX_SERIES_PER_METRIC = "WORKTRACK_MAX_SERIES_PER_METRIC"
+ENV_REPORTING_PACK = "WORKTRACK_REPORTING_PACK"
+ENV_HOLIDAY_SUBDIVISION = "WORKTRACK_HOLIDAY_SUBDIVISION"
+ENV_OFFICE_ONE_WAY_KM = "WORKTRACK_OFFICE_ONE_WAY_KM"
 # endregion
 
 
@@ -79,6 +86,9 @@ class WorktrackSettings:
         mode: Deployment topology (`node` or `hub`).
         max_label_values: Maximum distinct values permitted per metric label.
         max_series_per_metric: Maximum distinct label-tuple series per metric.
+        reporting_pack: Slug identifier for the active reporting pack.
+        holiday_subdivision: Regional subdivision code for public holidays.
+        office_one_way_km: Distance in kilometers from home to primary office.
     """
 
     config_file: Path
@@ -92,6 +102,13 @@ class WorktrackSettings:
     mode: str = DEFAULT_DEPLOYMENT_MODE
     max_label_values: int = DEFAULT_MAX_LABEL_VALUES
     max_series_per_metric: int = DEFAULT_MAX_SERIES_PER_METRIC
+    reporting_pack: str = DEFAULT_REPORTING_PACK
+    holiday_subdivision: str = DEFAULT_HOLIDAY_SUBDIVISION
+    office_one_way_km: float = DEFAULT_OFFICE_ONE_WAY_KM
+
+    def __post_init__(self) -> None:
+        """Validate settings invariants upon instantiation."""
+        _validate_settings(self)
 
     @classmethod
     def from_env(
@@ -139,12 +156,48 @@ def _validate_settings(settings: WorktrackSettings) -> None:
         or settings.max_series_per_metric < MIN_POSITIVE_LIMIT
     ):
         raise ConfigurationError("max_label_values and max_series_per_metric must be >= 1.")
+    _validate_reporting_settings(settings)
+
+
+def _validate_reporting_settings(settings: WorktrackSettings) -> None:
+    """Validate reporting pack slug and commute distance invariants."""
+    if not settings.reporting_pack.strip():
+        raise ConfigurationError("reporting_pack must be a non-empty identifier.")
+    if (
+        not math.isfinite(settings.office_one_way_km)
+        or settings.office_one_way_km < MIN_NON_NEGATIVE_DISTANCE
+    ):
+        raise ConfigurationError(
+            f"office_one_way_km must be finite and >= {MIN_NON_NEGATIVE_DISTANCE}."
+        )
 
 
 # endregion
 
 
 # region Resolution
+def _assemble_reporting_settings(
+    env: Mapping[str, str],
+    table: Mapping[str, object],
+) -> tuple[str, str, float]:
+    """Resolve reporting pack, holiday subdivision, and commute km."""
+    pack = _resolve_str_setting(
+        ENV_REPORTING_PACK,
+        "reporting_pack",
+        DEFAULT_REPORTING_PACK,
+        env,
+        table,
+        allow_empty=True,
+    ).lower().strip()
+    subdiv = _resolve_str_setting(
+        ENV_HOLIDAY_SUBDIVISION, "holiday_subdivision", DEFAULT_HOLIDAY_SUBDIVISION, env, table
+    ).upper().strip()
+    km = _resolve_float_setting(
+        ENV_OFFICE_ONE_WAY_KM, "office_one_way_km", DEFAULT_OFFICE_ONE_WAY_KM, env, table
+    )
+    return pack, subdiv, km
+
+
 def _assemble_settings(
     *,
     config_file: Path,
@@ -156,6 +209,7 @@ def _assemble_settings(
     default_db = xdg["data"] / APP_SLUG / DEFAULT_DB_FILENAME
     default_sock = xdg["runtime"] / APP_SLUG / DEFAULT_SOCKET_FILENAME
     default_tel = xdg["state"] / APP_SLUG / DEFAULT_TELEMETRY_SUBDIR
+    pack, subdiv, km = _assemble_reporting_settings(env, table)
     return WorktrackSettings(
         config_file=config_file,
         db_path=_resolve_path_setting(ENV_DB_PATH, "db_path", default_db, env, table),
@@ -190,6 +244,9 @@ def _assemble_settings(
             env,
             table,
         ),
+        reporting_pack=pack,
+        holiday_subdivision=subdiv,
+        office_one_way_km=km,
     )
 
 
@@ -261,16 +318,20 @@ def _resolve_str_setting(
     default: str,
     env: Mapping[str, str],
     table: Mapping[str, object],
+    *,
+    allow_empty: bool = False,
 ) -> str:
     """Resolve a string setting with env > TOML > default precedence."""
-    env_val = env.get(env_key, "").strip()
-    if env_val:
-        return env_val
+    if env_key in env:
+        env_val = env[env_key]
+        if allow_empty or env_val.strip():
+            return env_val
     if toml_key in table:
         raw_val = table[toml_key]
         if not isinstance(raw_val, str):
             raise ConfigurationError(f"TOML key '{toml_key}' must be a string.")
-        return raw_val
+        if allow_empty or raw_val.strip():
+            return raw_val
     return default
 
 
