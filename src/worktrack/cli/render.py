@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Mapping, Sequence
-from typing import Final, TextIO
+from typing import Any, Final, TextIO
 
 from worktrack.agenda.models import (
     AgendaItem,
@@ -31,9 +31,10 @@ def write_line(stream: TextIO, text: str = "") -> None:
     stream.write(f"{text}\n")
 
 
-def write_json(stream: TextIO, payload: Mapping[str, object]) -> None:
+def write_json(stream: TextIO, payload: Any) -> None:
     """Serialize `payload` as compact newline-terminated JSON to `stream`."""
-    stream.write(f"{json.dumps(dict(payload), sort_keys=False)}\n")
+    serialized = dict(payload) if isinstance(payload, Mapping) else payload
+    stream.write(f"{json.dumps(serialized, sort_keys=False)}\n")
 
 
 def render_now_insight(stream: TextIO, insight: NowInsight) -> None:

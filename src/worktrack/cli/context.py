@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Final, TextIO
 
+from worktrack.absences import AbsenceLedger, HolidayCalendar
 from worktrack.agenda.planner import AgendaPlanner
 from worktrack.collectors.store import ClueStore
 from worktrack.config import WorktrackSettings
@@ -29,6 +30,7 @@ from worktrack.core.models import (
 )
 from worktrack.hub_sync.ingest_store import HubRollupIngestStore
 from worktrack.outbox.store import OutboxStore
+from worktrack.reporting.store import TravelTripStore
 from worktrack.telemetry.metrics import TelemetryRecorder
 
 # region Constants
@@ -58,6 +60,9 @@ SUBCOMMAND_EXPORT: Final = "export"
 SUBCOMMAND_DAEMON: Final = "daemon"
 SUBCOMMAND_STATUS: Final = "status"
 SUBCOMMAND_METRICS: Final = "metrics"
+SUBCOMMAND_ABSENCE: Final = "absence"
+SUBCOMMAND_TRAVEL: Final = "travel"
+SUBCOMMAND_REPORT: Final = "report"
 SUBCOMMAND_HELP: Final = "help"
 SUBCOMMAND_UNKNOWN: Final = "unknown"
 
@@ -85,6 +90,9 @@ CANONICAL_CLI_SUBCOMMANDS: Final[frozenset[str]] = frozenset(
         SUBCOMMAND_DAEMON,
         SUBCOMMAND_STATUS,
         SUBCOMMAND_METRICS,
+        SUBCOMMAND_ABSENCE,
+        SUBCOMMAND_TRAVEL,
+        SUBCOMMAND_REPORT,
         SUBCOMMAND_HELP,
         SUBCOMMAND_UNKNOWN,
     }
@@ -168,6 +176,22 @@ class CliContext:
             self.settings,
             environ=self.environ,
         ) as store:
+            yield store
+
+    @contextmanager
+    def open_absence_ledger(
+        self, *, calendar: HolidayCalendar | None = None
+    ) -> Iterator[AbsenceLedger]:
+        """Open a migrated `AbsenceLedger` bound to `settings.db_path`."""
+        self.settings.db_path.parent.mkdir(parents=True, exist_ok=True)
+        with AbsenceLedger(self.settings.db_path, calendar=calendar) as ledger:
+            yield ledger
+
+    @contextmanager
+    def open_travel_store(self) -> Iterator[TravelTripStore]:
+        """Open a migrated `TravelTripStore` bound to `settings.db_path`."""
+        self.settings.db_path.parent.mkdir(parents=True, exist_ok=True)
+        with TravelTripStore(self.settings.db_path) as store:
             yield store
 
 

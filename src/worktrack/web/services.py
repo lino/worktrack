@@ -1,3 +1,4 @@
+# fritz: allow-file-length=480 reason="WebServiceContainer reporting store extensions"
 """Injectable `WebServiceContainer`, OAuth provider loader, and DRF exception mapper."""
 
 from __future__ import annotations
@@ -16,6 +17,7 @@ from rest_framework import status
 if TYPE_CHECKING:
     from rest_framework.response import Response
 
+from worktrack.absences import AbsenceLedger, HolidayCalendar
 from worktrack.agenda import AgendaError, AgendaPlanner, AgendaValidationError
 from worktrack.collectors import (
     ClueNotFoundError,
@@ -63,6 +65,7 @@ from worktrack.outbox import (
     RollupSink,
 )
 from worktrack.reconciler import ReconcilerError, RetroSplitConflictError
+from worktrack.reporting.store import TravelTripStore
 from worktrack.secrets import (
     OAuthBrokerError,
     OAuthInvalidClientError,
@@ -200,6 +203,22 @@ class WebServiceContainer:
     def open_hub_ingest_store(self) -> Iterator[HubRollupIngestStore]:
         """Open a migrated `HubRollupIngestStore` bound to `self.settings.db_path`."""
         with HubRollupIngestStore.from_settings(self.settings, environ=self.environ) as store:
+            yield store
+
+    @contextmanager
+    def open_absence_ledger(
+        self, *, calendar: HolidayCalendar | None = None
+    ) -> Iterator[AbsenceLedger]:
+        """Open a migrated `AbsenceLedger` bound to `self.settings.db_path`."""
+        self.settings.db_path.parent.mkdir(parents=True, exist_ok=True)
+        with AbsenceLedger(self.settings.db_path, calendar=calendar) as ledger:
+            yield ledger
+
+    @contextmanager
+    def open_travel_store(self) -> Iterator[TravelTripStore]:
+        """Open a migrated `TravelTripStore` bound to `self.settings.db_path`."""
+        self.settings.db_path.parent.mkdir(parents=True, exist_ok=True)
+        with TravelTripStore(self.settings.db_path) as store:
             yield store
 
 
@@ -383,10 +402,8 @@ def worktrack_exception_handler(exc: Exception, context: dict[str, Any]) -> Resp
     )
 
 
-def _classify_domain_exception(exc: Exception) -> tuple[int, str] | None:
-    """Map a Worktrack exception instance to `(http_status_code, error_code)`."""
-    if isinstance(exc, (NotFoundError, OutboxItemNotFoundError, ClueNotFoundError)):
-        return status.HTTP_404_NOT_FOUND, "not_found"
+def _classify_auth_or_conflict_exception(exc: Exception) -> tuple[int, str] | None:
+    """Map authentication, egress bypass, and state-conflict domain exceptions."""
     if isinstance(exc, EgressBypassBlockedError):
         return status.HTTP_403_FORBIDDEN, "egress_bypass_blocked"
     if isinstance(
@@ -411,6 +428,16 @@ def _classify_domain_exception(exc: Exception) -> tuple[int, str] | None:
         return status.HTTP_502_BAD_GATEWAY, "oauth_invalid_client"
     if isinstance(exc, (OAuthBrokerError, SecretError)):
         return status.HTTP_400_BAD_REQUEST, "oauth_broker_error"
+    return None
+
+
+def _classify_domain_exception(exc: Exception) -> tuple[int, str] | None:
+    """Map a Worktrack exception instance to `(http_status_code, error_code)`."""
+    if isinstance(exc, (NotFoundError, OutboxItemNotFoundError, ClueNotFoundError)):
+        return status.HTTP_404_NOT_FOUND, "not_found"
+    auth_or_conflict = _classify_auth_or_conflict_exception(exc)
+    if auth_or_conflict is not None:
+        return auth_or_conflict
     if isinstance(
         exc,
         (
@@ -432,6 +459,10 @@ def _classify_domain_exception(exc: Exception) -> tuple[int, str] | None:
             HubSyncError,
         ),
     ):
+        return status.HTTP_400_BAD_REQUEST, "validation_error"
+    if isinstance(exc, KeyError):
+        return status.HTTP_404_NOT_FOUND, "not_found"
+    if isinstance(exc, ValueError):
         return status.HTTP_400_BAD_REQUEST, "validation_error"
     return None
 

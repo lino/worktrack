@@ -1,6 +1,129 @@
 {
   "components": {
     "schemas": {
+      "AbsenceCreateRequestKindEnum": {
+        "description": "* `compensatory_off` - compensatory_off\n* `sick_leave` - sick_leave\n* `special_leave` - special_leave\n* `unpaid_leave` - unpaid_leave\n* `vacation` - vacation",
+        "enum": [
+          "compensatory_off",
+          "sick_leave",
+          "special_leave",
+          "unpaid_leave",
+          "vacation"
+        ],
+        "type": "string"
+      },
+      "AbsenceCreateRequestRequest": {
+        "description": "Request payload for recording a new statutory absence.",
+        "properties": {
+          "day_fraction": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DayFractionEnum"
+              }
+            ],
+            "default": 1.0
+          },
+          "end_date": {
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "kind": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AbsenceCreateRequestKindEnum"
+              }
+            ],
+            "default": "vacation"
+          },
+          "notes": {
+            "default": "",
+            "type": "string"
+          },
+          "start_date": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "subdivision": {
+            "default": "",
+            "type": "string"
+          }
+        },
+        "required": [
+          "start_date"
+        ],
+        "type": "object"
+      },
+      "AbsenceEntry": {
+        "description": "Canonical absence record representation.",
+        "properties": {
+          "created_at": {
+            "type": "string"
+          },
+          "day_fraction": {
+            "format": "double",
+            "type": "number"
+          },
+          "effective_days": {
+            "format": "double",
+            "type": "number"
+          },
+          "end_date": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "start_date": {
+            "type": "string"
+          },
+          "workdays_covered": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "created_at",
+          "day_fraction",
+          "effective_days",
+          "end_date",
+          "id",
+          "kind",
+          "notes",
+          "start_date",
+          "workdays_covered"
+        ],
+        "type": "object"
+      },
+      "AbsenceListResponse": {
+        "description": "Response payload for `GET /api/v1/reporting/absences/`.",
+        "properties": {
+          "absences": {
+            "items": {
+              "$ref": "#/components/schemas/AbsenceEntry"
+            },
+            "type": "array"
+          },
+          "count": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "absences",
+          "count"
+        ],
+        "type": "object"
+      },
       "Activity": {
         "description": "Canonical `Activity` transport schema for `pinia-orm`.",
         "properties": {
@@ -1051,6 +1174,14 @@
         ],
         "type": "object"
       },
+      "DayFractionEnum": {
+        "description": "* `0.5` - 0.5\n* `1.0` - 1.0",
+        "enum": [
+          0.5,
+          1.0
+        ],
+        "type": "number"
+      },
       "EgressOutcomeEnum": {
         "description": "* `error` - error\n* `ok` - ok\n* `skipped_duplicate` - skipped_duplicate",
         "enum": [
@@ -1691,6 +1822,25 @@
         ],
         "type": "object"
       },
+      "HolidayListResponse": {
+        "description": "Response payload for `GET /api/v1/reporting/holidays/`.",
+        "properties": {
+          "count": {
+            "type": "integer"
+          },
+          "holidays": {
+            "items": {
+              "$ref": "#/components/schemas/PublicHoliday"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "count",
+          "holidays"
+        ],
+        "type": "object"
+      },
       "HubCatalogUpsertRequestRequest": {
         "description": "Request body for `POST /api/v1/hub/catalog/`.",
         "properties": {
@@ -2209,6 +2359,128 @@
         },
         "required": [
           "slices"
+        ],
+        "type": "object"
+      },
+      "JurisdictionReportSummary": {
+        "description": "Consolidated statutory tax allowances and business travel reimbursements.",
+        "properties": {
+          "absence_summary": {
+            "additionalProperties": {},
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "client_site_days": {
+            "type": "integer"
+          },
+          "commute_allowance_total": {
+            "format": "double",
+            "type": "number"
+          },
+          "commute_daily_allowance": {
+            "format": "double",
+            "type": "number"
+          },
+          "end_date": {
+            "type": "string"
+          },
+          "excluded_absence_or_holiday_dates": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "excluded_travel_dates": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "home_office_allowance": {
+            "format": "double",
+            "type": "number"
+          },
+          "home_office_days_capped": {
+            "type": "integer"
+          },
+          "home_office_days_eligible": {
+            "type": "integer"
+          },
+          "home_office_days_raw": {
+            "type": "integer"
+          },
+          "mobile_work_days": {
+            "type": "integer"
+          },
+          "office_days_eligible": {
+            "type": "integer"
+          },
+          "office_days_raw": {
+            "type": "integer"
+          },
+          "office_one_way_km": {
+            "format": "double",
+            "type": "number"
+          },
+          "pack": {
+            "$ref": "#/components/schemas/ReportingPack"
+          },
+          "rendered": {
+            "type": "string"
+          },
+          "report_format": {
+            "type": "string"
+          },
+          "start_date": {
+            "type": "string"
+          },
+          "total_allowance_and_reimbursement": {
+            "format": "double",
+            "type": "number"
+          },
+          "travel_allowance_total": {
+            "format": "double",
+            "type": "number"
+          },
+          "travel_mileage_total": {
+            "format": "double",
+            "type": "number"
+          },
+          "travel_per_diem_total": {
+            "format": "double",
+            "type": "number"
+          },
+          "trips": {
+            "items": {
+              "$ref": "#/components/schemas/TravelTripCalculation"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "client_site_days",
+          "commute_allowance_total",
+          "commute_daily_allowance",
+          "end_date",
+          "excluded_absence_or_holiday_dates",
+          "excluded_travel_dates",
+          "home_office_allowance",
+          "home_office_days_capped",
+          "home_office_days_eligible",
+          "home_office_days_raw",
+          "mobile_work_days",
+          "office_days_eligible",
+          "office_days_raw",
+          "office_one_way_km",
+          "pack",
+          "start_date",
+          "total_allowance_and_reimbursement",
+          "travel_allowance_total",
+          "travel_mileage_total",
+          "travel_per_diem_total",
+          "trips"
         ],
         "type": "object"
       },
@@ -2894,6 +3166,30 @@
         ],
         "type": "object"
       },
+      "PublicHoliday": {
+        "description": "Statutory or custom public holiday descriptor.",
+        "properties": {
+          "date": {
+            "type": "string"
+          },
+          "is_custom": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "subdivision": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "date",
+          "is_custom",
+          "name",
+          "subdivision"
+        ],
+        "type": "object"
+      },
       "ReconcileInspectionResult": {
         "description": "Response payload for `GET /api/v1/reconciler/inspect/`.",
         "properties": {
@@ -3014,6 +3310,118 @@
         },
         "required": [
           "proposal"
+        ],
+        "type": "object"
+      },
+      "ReportingPack": {
+        "description": "Statutory or generic reporting pack configuration.",
+        "properties": {
+          "breakfast_deduction_ratio": {
+            "format": "double",
+            "type": "number"
+          },
+          "car_mileage_rate_per_km": {
+            "format": "double",
+            "type": "number"
+          },
+          "commute_first_tier_km": {
+            "format": "double",
+            "type": "number"
+          },
+          "commute_first_tier_rate": {
+            "format": "double",
+            "type": "number"
+          },
+          "commute_second_tier_rate": {
+            "format": "double",
+            "type": "number"
+          },
+          "country_code": {
+            "type": "string"
+          },
+          "country_per_diem_overrides": {
+            "additionalProperties": {
+              "items": {
+                "format": "double",
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "type": "object"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "dinner_deduction_ratio": {
+            "format": "double",
+            "type": "number"
+          },
+          "home_office_daily_rate": {
+            "format": "double",
+            "type": "number"
+          },
+          "home_office_max_days": {
+            "type": "integer"
+          },
+          "lunch_deduction_ratio": {
+            "format": "double",
+            "type": "number"
+          },
+          "per_diem_full_day_rate": {
+            "format": "double",
+            "type": "number"
+          },
+          "per_diem_min_hours_single_day": {
+            "format": "double",
+            "type": "number"
+          },
+          "per_diem_partial_day_rate": {
+            "format": "double",
+            "type": "number"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "tax_rules_enabled": {
+            "type": "boolean"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "breakfast_deduction_ratio",
+          "car_mileage_rate_per_km",
+          "commute_first_tier_km",
+          "commute_first_tier_rate",
+          "commute_second_tier_rate",
+          "country_code",
+          "currency",
+          "dinner_deduction_ratio",
+          "home_office_daily_rate",
+          "home_office_max_days",
+          "lunch_deduction_ratio",
+          "per_diem_full_day_rate",
+          "per_diem_min_hours_single_day",
+          "per_diem_partial_day_rate",
+          "slug",
+          "tax_rules_enabled",
+          "title"
+        ],
+        "type": "object"
+      },
+      "ReportingPackListResponse": {
+        "description": "Response payload for `GET /api/v1/reporting/packs/`.",
+        "properties": {
+          "packs": {
+            "items": {
+              "$ref": "#/components/schemas/ReportingPack"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "packs"
         ],
         "type": "object"
       },
@@ -3384,6 +3792,404 @@
           "window_start",
           "workplace",
           "workplace_breakdown"
+        ],
+        "type": "object"
+      },
+      "TransportModeEnum": {
+        "description": "* `car` - car\n* `flight` - flight\n* `other` - other\n* `public_transit` - public_transit\n* `train` - train",
+        "enum": [
+          "car",
+          "flight",
+          "other",
+          "public_transit",
+          "train"
+        ],
+        "type": "string"
+      },
+      "TravelDayAllowance": {
+        "description": "Calculated per-diem and meal deductions for a single travel calendar day.",
+        "properties": {
+          "breakfast_provided": {
+            "type": "boolean"
+          },
+          "classification": {
+            "type": "string"
+          },
+          "day": {
+            "type": "string"
+          },
+          "dinner_provided": {
+            "type": "boolean"
+          },
+          "gross_per_diem": {
+            "format": "double",
+            "type": "number"
+          },
+          "lunch_provided": {
+            "type": "boolean"
+          },
+          "meal_deduction": {
+            "format": "double",
+            "type": "number"
+          },
+          "net_per_diem": {
+            "format": "double",
+            "type": "number"
+          }
+        },
+        "required": [
+          "breakfast_provided",
+          "classification",
+          "day",
+          "dinner_provided",
+          "gross_per_diem",
+          "lunch_provided",
+          "meal_deduction",
+          "net_per_diem"
+        ],
+        "type": "object"
+      },
+      "TravelTrip": {
+        "description": "Recorded business travel trip itinerary.",
+        "properties": {
+          "country_code": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "destination": {
+            "type": "string"
+          },
+          "distance_km": {
+            "format": "double",
+            "type": "number"
+          },
+          "ended_at": {
+            "type": "string"
+          },
+          "entity_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "id": {
+            "type": "string"
+          },
+          "meals_by_date": {
+            "additionalProperties": {
+              "additionalProperties": {
+                "type": "boolean"
+              },
+              "type": "object"
+            },
+            "type": "object"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "started_at": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "transport_mode": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "country_code",
+          "created_at",
+          "destination",
+          "distance_km",
+          "ended_at",
+          "entity_id",
+          "id",
+          "meals_by_date",
+          "notes",
+          "started_at",
+          "title",
+          "transport_mode"
+        ],
+        "type": "object"
+      },
+      "TravelTripCalculation": {
+        "description": "Reimbursement breakdown and calculation for a business travel trip.",
+        "properties": {
+          "currency": {
+            "type": "string"
+          },
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/TravelDayAllowance"
+            },
+            "type": "array"
+          },
+          "gross_per_diem_total": {
+            "format": "double",
+            "type": "number"
+          },
+          "meal_deduction_total": {
+            "format": "double",
+            "type": "number"
+          },
+          "mileage_allowance": {
+            "format": "double",
+            "type": "number"
+          },
+          "net_per_diem_total": {
+            "format": "double",
+            "type": "number"
+          },
+          "total_reimbursement": {
+            "format": "double",
+            "type": "number"
+          },
+          "trip": {
+            "$ref": "#/components/schemas/TravelTrip"
+          }
+        },
+        "required": [
+          "currency",
+          "days",
+          "gross_per_diem_total",
+          "meal_deduction_total",
+          "mileage_allowance",
+          "net_per_diem_total",
+          "total_reimbursement",
+          "trip"
+        ],
+        "type": "object"
+      },
+      "TravelTripCreateRequestRequest": {
+        "description": "Request payload for recording a business travel trip.",
+        "properties": {
+          "breakfast_dates": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "country_code": {
+            "default": "DE",
+            "minLength": 1,
+            "type": "string"
+          },
+          "destination": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "dinner_dates": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "distance_km": {
+            "default": 0.0,
+            "format": "double",
+            "type": "number"
+          },
+          "ended_at": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "entity_id": {
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lunch_dates": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "notes": {
+            "default": "",
+            "type": "string"
+          },
+          "pack": {
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "started_at": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "transport_mode": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TransportModeEnum"
+              }
+            ],
+            "default": "train"
+          }
+        },
+        "required": [
+          "destination",
+          "ended_at",
+          "started_at",
+          "title"
+        ],
+        "type": "object"
+      },
+      "TravelTripListResponse": {
+        "description": "Response payload for `GET /api/v1/reporting/travel-trips/`.",
+        "properties": {
+          "count": {
+            "type": "integer"
+          },
+          "trips": {
+            "items": {
+              "$ref": "#/components/schemas/TravelTripCalculation"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "count",
+          "trips"
+        ],
+        "type": "object"
+      },
+      "VacationQuota": {
+        "description": "Annual vacation quota and carryover balance.",
+        "properties": {
+          "carryover_days": {
+            "format": "double",
+            "type": "number"
+          },
+          "entitlement_days": {
+            "format": "double",
+            "type": "number"
+          },
+          "total_available_days": {
+            "format": "double",
+            "type": "number"
+          },
+          "updated_at": {
+            "type": "string"
+          },
+          "year": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "carryover_days",
+          "entitlement_days",
+          "total_available_days",
+          "updated_at",
+          "year"
+        ],
+        "type": "object"
+      },
+      "VacationQuotaRequestRequest": {
+        "description": "Request payload for updating an annual vacation quota.",
+        "properties": {
+          "carryover_days": {
+            "default": 0.0,
+            "format": "double",
+            "type": "number"
+          },
+          "entitlement_days": {
+            "format": "double",
+            "type": "number"
+          },
+          "year": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "entitlement_days"
+        ],
+        "type": "object"
+      },
+      "VacationSummary": {
+        "description": "Consolidated annual leave breakdown and quota balance.",
+        "properties": {
+          "carryover_days": {
+            "format": "double",
+            "type": "number"
+          },
+          "compensatory_off_days": {
+            "format": "double",
+            "type": "number"
+          },
+          "entitlement_days": {
+            "format": "double",
+            "type": "number"
+          },
+          "planned_vacation_days": {
+            "format": "double",
+            "type": "number"
+          },
+          "public_holiday_count": {
+            "type": "integer"
+          },
+          "remaining_vacation_days": {
+            "format": "double",
+            "type": "number"
+          },
+          "sick_leave_days": {
+            "format": "double",
+            "type": "number"
+          },
+          "special_leave_days": {
+            "format": "double",
+            "type": "number"
+          },
+          "subdivision": {
+            "type": "string"
+          },
+          "taken_vacation_days": {
+            "format": "double",
+            "type": "number"
+          },
+          "total_quota_days": {
+            "format": "double",
+            "type": "number"
+          },
+          "unpaid_leave_days": {
+            "format": "double",
+            "type": "number"
+          },
+          "weekday_public_holiday_count": {
+            "type": "integer"
+          },
+          "year": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "carryover_days",
+          "compensatory_off_days",
+          "entitlement_days",
+          "planned_vacation_days",
+          "public_holiday_count",
+          "remaining_vacation_days",
+          "sick_leave_days",
+          "special_leave_days",
+          "subdivision",
+          "taken_vacation_days",
+          "total_quota_days",
+          "unpaid_leave_days",
+          "weekday_public_holiday_count",
+          "year"
         ],
         "type": "object"
       },
@@ -6206,6 +7012,432 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ReconcilerProposeResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {}
+        ],
+        "tags": [
+          "api"
+        ]
+      }
+    },
+    "/api/v1/reporting/absences/": {
+      "get": {
+        "description": "List absences matching optional date bounds and category filters.",
+        "operationId": "v1_reporting_absences_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "end_date",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "kind",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "start_date",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "subdivision",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AbsenceListResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {}
+        ],
+        "tags": [
+          "api"
+        ]
+      },
+      "post": {
+        "description": "Record a new absence entry in the ledger.",
+        "operationId": "v1_reporting_absences_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AbsenceCreateRequestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AbsenceEntry"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {}
+        ],
+        "tags": [
+          "api"
+        ]
+      }
+    },
+    "/api/v1/reporting/absences/quota/": {
+      "get": {
+        "description": "Retrieve stored vacation quota for a calendar year.",
+        "operationId": "v1_reporting_absence_quota_retrieve",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "year",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VacationQuota"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {}
+        ],
+        "tags": [
+          "api"
+        ]
+      },
+      "put": {
+        "description": "Create or update statutory vacation quota for a year.",
+        "operationId": "v1_reporting_absence_quota_update",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "year",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VacationQuotaRequestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VacationQuota"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {}
+        ],
+        "tags": [
+          "api"
+        ]
+      }
+    },
+    "/api/v1/reporting/absences/summary/": {
+      "get": {
+        "description": "Compute consolidated annual leave breakdown.",
+        "operationId": "v1_reporting_absence_summary_retrieve",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "reference_date",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "subdivision",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "year",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VacationSummary"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {}
+        ],
+        "tags": [
+          "api"
+        ]
+      }
+    },
+    "/api/v1/reporting/holidays/": {
+      "get": {
+        "description": "Return statutory and custom public holidays.",
+        "operationId": "v1_reporting_holidays_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "subdivision",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "year",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HolidayListResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {}
+        ],
+        "tags": [
+          "api"
+        ]
+      }
+    },
+    "/api/v1/reporting/packs/": {
+      "get": {
+        "description": "Return all available reporting packs.",
+        "operationId": "v1_reporting_packs_list",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportingPackListResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {}
+        ],
+        "tags": [
+          "api"
+        ]
+      }
+    },
+    "/api/v1/reporting/summary/": {
+      "get": {
+        "description": "Calculate statutory tax summary with deductions and exclusions.",
+        "operationId": "v1_reporting_summary_retrieve",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "end_date",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "office_one_way_km",
+            "schema": {
+              "format": "float",
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "pack",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "report_format",
+            "schema": {
+              "enum": [
+                "csv",
+                "json",
+                "markdown"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "start_date",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "subdivision",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JurisdictionReportSummary"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {}
+        ],
+        "tags": [
+          "api"
+        ]
+      }
+    },
+    "/api/v1/reporting/travel-trips/": {
+      "get": {
+        "description": "List business travel trips and their calculated statutory allowances.",
+        "operationId": "v1_reporting_travel_trips_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "end_date",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "pack",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "start_date",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TravelTripListResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {}
+        ],
+        "tags": [
+          "api"
+        ]
+      },
+      "post": {
+        "description": "Record a business travel trip and calculate per-diem and mileage allowances.",
+        "operationId": "v1_reporting_travel_trips_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TravelTripCreateRequestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TravelTripCalculation"
                 }
               }
             },

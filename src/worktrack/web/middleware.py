@@ -79,6 +79,13 @@ ROUTE_LABEL_BY_URL_NAME: Final[dict[str, str]] = {
     "api_v1_hub_catalog": "api_v1_hub",
     "api_v1_exports_workplace_tax": "api_v1_exports",
     "api_v1_exports_entity_attribution": "api_v1_exports",
+    "api_v1_reporting_packs": "api_v1_reporting",
+    "api_v1_reporting_holidays": "api_v1_reporting",
+    "api_v1_reporting_absences": "api_v1_reporting",
+    "api_v1_reporting_absence_quota": "api_v1_reporting",
+    "api_v1_reporting_absence_summary": "api_v1_reporting",
+    "api_v1_reporting_travel_trips": "api_v1_reporting",
+    "api_v1_reporting_summary": "api_v1_reporting",
 }
 # endregion
 

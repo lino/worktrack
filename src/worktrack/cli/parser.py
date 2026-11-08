@@ -18,6 +18,7 @@ from worktrack.cli.commands_clues_sensors import register_clues_sensors_subparse
 from worktrack.cli.commands_ops import register_ops_subparsers
 from worktrack.cli.commands_outbox import register_outbox_subparsers
 from worktrack.cli.commands_planning import register_planning_subparsers
+from worktrack.cli.commands_reporting import register_reporting_subparsers
 from worktrack.cli.commands_web import register_web_subparsers
 from worktrack.cli.context import (
     EXIT_ERROR,
@@ -63,6 +64,7 @@ DEFAULT_SUBPARSER_REGISTRARS: tuple[SubparserRegistrar, ...] = (
     register_web_subparsers,
     register_clues_sensors_subparsers,
     register_calendar_mcp_hub_export_subparsers,
+    register_reporting_subparsers,
     register_ops_subparsers,
 )
 
@@ -293,6 +295,7 @@ def _execute_parsed_command(
         ConfigurationError,
         IpcError,
         ValueError,
+        KeyError,
     ) as exc:
         safe_message = scrub_secrets(str(exc))
         if ctx.as_json:

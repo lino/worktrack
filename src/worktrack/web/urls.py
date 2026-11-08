@@ -61,6 +61,15 @@ from worktrack.web.views_planning import (
     TodayInsightView,
     WeekInsightView,
 )
+from worktrack.web.views_reporting import (
+    ReportingAbsenceListCreateView,
+    ReportingAbsenceQuotaView,
+    ReportingAbsenceSummaryView,
+    ReportingHolidaysView,
+    ReportingPackListView,
+    ReportingSummaryView,
+    ReportingTravelTripListCreateView,
+)
 from worktrack.web.views_telemetry import HealthzView, MetricsExpositionView
 
 neutralize_lazy_admin_site()
@@ -236,5 +245,40 @@ urlpatterns: list[URLPattern] = [
         "api/v1/exports/entity-attribution/",
         EntityAttributionExportView.as_view(),
         name="api_v1_exports_entity_attribution",
+    ),
+    path(
+        "api/v1/reporting/packs/",
+        ReportingPackListView.as_view(),
+        name="api_v1_reporting_packs",
+    ),
+    path(
+        "api/v1/reporting/holidays/",
+        ReportingHolidaysView.as_view(),
+        name="api_v1_reporting_holidays",
+    ),
+    path(
+        "api/v1/reporting/absences/",
+        ReportingAbsenceListCreateView.as_view(),
+        name="api_v1_reporting_absences",
+    ),
+    path(
+        "api/v1/reporting/absences/quota/",
+        ReportingAbsenceQuotaView.as_view(),
+        name="api_v1_reporting_absence_quota",
+    ),
+    path(
+        "api/v1/reporting/absences/summary/",
+        ReportingAbsenceSummaryView.as_view(),
+        name="api_v1_reporting_absence_summary",
+    ),
+    path(
+        "api/v1/reporting/travel-trips/",
+        ReportingTravelTripListCreateView.as_view(),
+        name="api_v1_reporting_travel_trips",
+    ),
+    path(
+        "api/v1/reporting/summary/",
+        ReportingSummaryView.as_view(),
+        name="api_v1_reporting_summary",
     ),
 ]
