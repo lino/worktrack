@@ -9,7 +9,12 @@ from typing import Final
 from worktrack.agenda.models import AGENDA_SCHEMA_VERSION_INITIAL
 from worktrack.core.exceptions import MigrationError
 from worktrack.core.models import MigrationRecord, format_utc_iso, parse_utc_iso
-from worktrack.core.schema import Migration, apply_migrations, transaction
+from worktrack.core.schema import (
+    Migration,
+    _fetch_existing_migrations,
+    apply_migrations,
+    transaction,
+)
 
 # region Constants
 AGENDA_SCHEMA_MIGRATIONS_BOOTSTRAP_SQL: Final = """
@@ -77,11 +82,11 @@ def apply_agenda_migrations(
     """Ensure core ledger tables exist, then apply `agenda_schema_migrations` steps."""
     apply_migrations(conn)
     try:
-        conn.execute(AGENDA_SCHEMA_MIGRATIONS_BOOTSTRAP_SQL)
-        existing_rows = conn.execute(
-            "SELECT version, name, checksum FROM agenda_schema_migrations ORDER BY version ASC"
-        ).fetchall()
-        existing_by_version = {int(row["version"]): row for row in existing_rows}
+        existing_by_version = _fetch_existing_migrations(
+            conn,
+            "agenda_schema_migrations",
+            AGENDA_SCHEMA_MIGRATIONS_BOOTSTRAP_SQL,
+        )
 
         for step in migrations:
             applied = existing_by_version.get(step.version)

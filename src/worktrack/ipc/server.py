@@ -266,11 +266,12 @@ class WorktrackIpcServer:
         """Atomically update active connection count and persist Prometheus gauge."""
         with self._lock:
             self._active_connections = max(0, self._active_connections + delta)
-            if self._recorder is not None:
-                self._recorder.set_gauge(
-                    ACTIVE_CONNECTIONS_METRIC,
-                    value=float(self._active_connections),
-                )
+            current = float(self._active_connections)
+        if self._recorder is not None:
+            self._recorder.set_gauge(
+                ACTIVE_CONNECTIONS_METRIC,
+                value=current,
+            )
 
 
 def _bind_unix_listener(socket_path: Path) -> socket.socket:

@@ -6,6 +6,7 @@ import contextlib
 import json
 import os
 import tempfile
+import threading
 from collections.abc import Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -20,6 +21,7 @@ LOCK_FILENAME = "metrics_state.lock"
 JSON_INDENT_SPACES: int = 2
 DEFAULT_HISTOGRAM_COUNT: int = 0
 DEFAULT_HISTOGRAM_SUM: float = 0.0
+_PROCESS_TELEMETRY_LOCK = threading.Lock()
 
 
 @dataclass(slots=True)
@@ -66,20 +68,21 @@ def decode_label_values(encoded: str) -> tuple[str, ...]:
 @contextlib.contextmanager
 def locked_telemetry_state(telemetry_dir: Path) -> Iterator[PersistedMetricsState]:
     """Acquire exclusive telemetry lock, load state, yield, and save atomically."""
-    telemetry_dir.mkdir(parents=True, exist_ok=True)
-    lock_path = telemetry_dir / LOCK_FILENAME
-    state_path = telemetry_dir / STATE_FILENAME
+    with _PROCESS_TELEMETRY_LOCK:
+        telemetry_dir.mkdir(parents=True, exist_ok=True)
+        lock_path = telemetry_dir / LOCK_FILENAME
+        state_path = telemetry_dir / STATE_FILENAME
 
-    with lock_path.open("a+", encoding="utf-8") as lock_handle:
-        if fcntl is not None:
-            fcntl.flock(lock_handle.fileno(), fcntl.LOCK_EX)
-        try:
-            state = read_telemetry_state(state_path)
-            yield state
-            _write_telemetry_state_atomic(state_path, state)
-        finally:
+        with lock_path.open("a+", encoding="utf-8") as lock_handle:
             if fcntl is not None:
-                fcntl.flock(lock_handle.fileno(), fcntl.LOCK_UN)
+                fcntl.flock(lock_handle.fileno(), fcntl.LOCK_EX)
+            try:
+                state = read_telemetry_state(state_path)
+                yield state
+                _write_telemetry_state_atomic(state_path, state)
+            finally:
+                if fcntl is not None:
+                    fcntl.flock(lock_handle.fileno(), fcntl.LOCK_UN)
 
 
 def read_telemetry_state(state_path: Path) -> PersistedMetricsState:
@@ -131,7 +134,6 @@ def _write_telemetry_state_atomic(state_path: Path, state: PersistedMetricsState
         with os.fdopen(fd, "w", encoding="utf-8") as handle:
             handle.write(encoded)
             handle.flush()
-            os.fsync(handle.fileno())
         os.replace(tmp_name, state_path)
     except Exception:
         if os.path.exists(tmp_name):

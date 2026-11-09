@@ -7,7 +7,7 @@ from datetime import UTC, datetime
 from typing import Final
 
 from worktrack.core.models import MigrationRecord, format_utc_iso, parse_utc_iso
-from worktrack.core.schema import Migration, transaction
+from worktrack.core.schema import Migration, _fetch_existing_migrations, transaction
 from worktrack.outbox.exceptions import OutboxMigrationError
 
 # region Constants
@@ -112,11 +112,11 @@ def apply_outbox_migrations(
 ) -> None:
     """Apply pending `outbox_schema_migrations` deterministically and verify checksums."""
     try:
-        conn.execute(OUTBOX_MIGRATIONS_BOOTSTRAP_SQL)
-        rows = conn.execute(
-            "SELECT version, name, checksum FROM outbox_schema_migrations ORDER BY version ASC"
-        ).fetchall()
-        existing = {int(row["version"]): row for row in rows}
+        existing = _fetch_existing_migrations(
+            conn,
+            "outbox_schema_migrations",
+            OUTBOX_MIGRATIONS_BOOTSTRAP_SQL,
+        )
         for step in migrations:
             applied = existing.get(step.version)
             if applied is not None:

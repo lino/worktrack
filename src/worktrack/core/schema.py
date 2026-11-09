@@ -273,17 +273,30 @@ def transaction(conn: sqlite3.Connection) -> Iterator[sqlite3.Connection]:
         raise
 
 
+def _fetch_existing_migrations(
+    conn: sqlite3.Connection,
+    table_name: str,
+    bootstrap_sql: str,
+) -> dict[int, sqlite3.Row]:
+    """Read applied migration rows, creating `table_name` only when missing."""
+    query = f"SELECT version, name, checksum FROM {table_name} ORDER BY version ASC"
+    try:
+        rows = conn.execute(query).fetchall()
+    except sqlite3.OperationalError:
+        conn.execute(bootstrap_sql)
+        rows = conn.execute(query).fetchall()
+    return {int(row["version"]): row for row in rows}
+
+
 def apply_migrations(
     conn: sqlite3.Connection,
     migrations: tuple[Migration, ...] = MIGRATIONS,
 ) -> None:
     """Apply pending migrations deterministically and verify applied checksums."""
     try:
-        conn.execute(SCHEMA_MIGRATIONS_BOOTSTRAP_SQL)
-        existing_rows = conn.execute(
-            "SELECT version, name, checksum FROM schema_migrations ORDER BY version ASC"
-        ).fetchall()
-        existing_by_version = {int(row["version"]): row for row in existing_rows}
+        existing_by_version = _fetch_existing_migrations(
+            conn, "schema_migrations", SCHEMA_MIGRATIONS_BOOTSTRAP_SQL
+        )
 
         for step in migrations:
             applied = existing_by_version.get(step.version)
